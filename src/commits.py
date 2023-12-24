@@ -6,6 +6,10 @@ import getopt
 import subprocess
 import os
 from datetime import datetime, timedelta
+import re
+
+from src.utils import *
+
 """
 curl -L \
   -H "Accept: application/vnd.github+json" \
@@ -31,7 +35,6 @@ def list_commits(owner, repo, format="json"):
     if format == "json":
         accept = "application/vnd.github+json"
     url = os.environ["API_URL"] + "/repos/" + owner + "/" + repo + "/commits"
-
     # query params
     # per_page
     params = {"per_page": 10}
@@ -51,4 +54,4 @@ def list_commits(owner, repo, format="json"):
     for item in response:
         data[item["commit"]["author"]["name"]] = [item["commit"]["author"]["date"], item["commit"]["message"]]
 
-    subprocess.run(["jq"], input=json.dumps(data), text=True)
+    prettify(data)

@@ -9,6 +9,7 @@ from src.writing import *
 from src.pr import *
 from src.commits import *
 from src.discord import *
+from src.cachy import *
 
 # read config file
 def read_config():
@@ -111,4 +112,12 @@ def __main__():
         sys.exit(1)
 
 if __name__ == "__main__":
-    __main__()
+
+    # check if first arg is cachy
+    if sys.argv[1] == 'cachy':
+        # call cachy function
+        read_config()
+        cachy()
+    else:
+        # call main function
+        __main__()

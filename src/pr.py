@@ -5,6 +5,8 @@ import requests
 import json
 import subprocess
 
+from src.utils import *
+
 # list pull requests
 def list_pull_requests(owner, repo, format="json"):
     """
@@ -33,4 +35,5 @@ def list_pull_requests(owner, repo, format="json"):
     for item in response:
         data[item["title"]] = [item["user"]["login"], item["created_at"], item["updated_at"], item["state"]]
 
-    subprocess.run(["jq"], input=json.dumps(data), text=True)
+    print(data)
+    prettify(data)
