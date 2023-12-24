@@ -6,7 +6,6 @@ import getopt
 import subprocess
 import os
 from datetime import datetime, timedelta
-import re
 
 from src.utils import *
 

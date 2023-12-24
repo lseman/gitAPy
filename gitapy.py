@@ -118,6 +118,10 @@ if __name__ == "__main__":
         # call cachy function
         read_config()
         cachy()
+    elif sys.argv[1] == 'up':
+        # call cachy function
+        read_config()
+        cachy_update()
     else:
         # call main function
         __main__()

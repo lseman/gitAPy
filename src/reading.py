@@ -47,39 +47,8 @@ def get_repo_contents(owner, repo, format="json", path=""):
     return get_json(response)
 
 
-# def full repository contents
-def full_repo_contents(owner, repo, format="json", path="", items={}, dirname=""):
-    """
-    Recursively retrieves the full contents of a repository, including directories and files.
 
-    Args:
-        owner (str): The owner of the repository.
-        repo (str): The name of the repository.
-        format (str, optional): The format of the response. Defaults to "json".
-        path (str, optional): The path within the repository to start retrieving contents from. Defaults to "".
-        items (dict, optional): A dictionary to store the retrieved contents. Defaults to {}.
-        dirname (str, optional): The directory name. Defaults to ''.
-
-    Returns:
-        dict: A dictionary containing the full contents of the repository.
-    """
-    data = get_repo_contents(owner, repo, format, path)
-
-    if dirname != "":
-        dirname = dirname + "/"
-    items[dirname] = []
-    for item in data:
-        if item["type"] == "dir":
-            full_repo_contents(
-                owner, repo, format, item["path"], items, dirname + item["name"]
-            )
-        else:
-            items[dirname].append(item["name"])
-
-    return items
-
-
-def list_repo_contents(owner, repo, format="json", recursive=True, path=""):
+def list_repo_contents(owner, repo, format="json", recursive=False, path=""):
     """
     List the contents of a repository.
 
@@ -93,14 +62,8 @@ def list_repo_contents(owner, repo, format="json", recursive=True, path=""):
     Returns:
         None
     """
-    if recursive == False:
-        data = get_repo_contents(owner, repo, format, path)
-    else:
-        data = full_repo_contents(owner, repo, format, path)
-
-    subprocess.run(["jq"], input=json.dumps(data).encode("utf-8"))
-
-    return
+    data = get_repo_contents(owner, repo, format, path)
+    return data
 
 # get repo releases
 def get_repo_releases(owner, repo, format="json"):
@@ -133,3 +96,126 @@ def get_repo_releases(owner, repo, format="json"):
     subprocess.run(["jq"], input=json.dumps(data), text=True)
 
     return
+
+# get file contents
+def get_file_content(owner, repo, file):
+    """
+    Retrieves the contents of a file in a given repository.
+
+    Parameters:
+    owner (str): The owner of the repository.
+    repo (str): The name of the repository.
+    file (str): The path to the file.
+
+    Returns:
+    None
+    """
+    accept = "application/vnd.github+json"
+    url = os.environ["API_URL"] + "/repos/" + owner + "/" + repo + "/contents/" + file
+    authorization = "Bearer " + os.environ["TOKEN"]
+    version = os.environ["API_VERSION"]
+
+    response = requests.get(url, headers={"Accept": accept, "Authorization": authorization, "X-GitHub-Api-Version": version})
+
+    # create data
+    response = response.json()
+
+    data = {}
+    data["name"] = response["name"]
+    data["path"] = response["path"]
+    data["content"] = response["content"]
+    data["encoding"] = response["encoding"]
+
+    return data
+
+# seaarch for file in repo
+def search_flle(owner, repo, file):
+    """
+    Retrieves the contents of a file in a given repository.
+
+    Parameters:
+    owner (str): The owner of the repository.
+    repo (str): The name of the repository.
+    file (str): The path to the file.
+
+    Returns:
+    None
+    """
+    accept = "application/vnd.github+json"
+    url = os.environ["API_URL"] + "/search/code?q=" + file + "+in:file+repo:" + owner + "/" + repo
+    authorization = "Bearer " + os.environ["TOKEN"]
+    version = os.environ["API_VERSION"]
+
+    response = requests.get(url, headers={"Accept": accept, "Authorization": authorization, "X-GitHub-Api-Version": version})
+
+    # create data
+    response = response.json()
+
+    data = {}
+    data["total_count"] = response["total_count"]
+    data["incomplete_results"] = response["incomplete_results"]
+    data["items"] = response["items"]
+
+    return data
+
+# get repo file tree
+def get_repo_tree(owner, repo, sha='', recursive="false"):
+    """
+    Retrieves the contents of a file in a given repository.
+
+    Parameters:
+    owner (str): The owner of the repository.
+    repo (str): The name of the repository.
+    sha (str): The sha of the tree.
+
+    Returns:
+    None
+    """
+
+    # use default sha if none is provided, with the last commit
+    if sha == '':
+        sha = get_last_commit(owner, repo)
+    
+
+    accept = "application/vnd.github+json"
+    url = os.environ["API_URL"] + "/repos/" + owner + "/" + repo + "/git/trees/" + sha
+    
+    authorization = "Bearer " + os.environ["TOKEN"]
+    version = os.environ["API_VERSION"]
+
+    params = {"recursive": recursive}
+
+    response = requests.get(url, headers={"Accept": accept, "Authorization": authorization, "X-GitHub-Api-Version": version}, params=params)
+
+    # create data
+    response = response.json()
+
+    return response
+
+# get last commit
+def get_last_commit(owner, repo):
+    """
+    Retrieves the contents of a file in a given repository.
+
+    Parameters:
+    owner (str): The owner of the repository.
+    repo (str): The name of the repository.
+
+    Returns:
+    None
+    """
+    accept = "application/vnd.github+json"
+    url = os.environ["API_URL"] + "/repos/" + owner + "/" + repo + "/commits"
+    authorization = "Bearer " + os.environ["TOKEN"]
+    version = os.environ["API_VERSION"]
+
+    response = requests.get(url, headers={"Accept": accept, "Authorization": authorization, "X-GitHub-Api-Version": version})
+
+    # create data
+    response = response.json()
+
+    data = {}
+    data["sha"] = response[0]["sha"]
+    data["url"] = response[0]["url"]
+
+    return data["sha"]

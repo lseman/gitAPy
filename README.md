@@ -14,6 +14,7 @@ GitAPy is a **NOT SO** comprehensive Python wrapper for the GitHub API. Designed
 To install GitAPy, you need Python 3.x and the following dependencies:
 - requests
 - json
+- rich
 
 Clone the repository using:
 ```bash
