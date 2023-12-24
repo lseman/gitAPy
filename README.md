@@ -1,0 +1,3 @@
+# GitAPy as in Python
+
+GitApy is ...
