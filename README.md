@@ -8,7 +8,7 @@ GitAPy is a **NOT SO** comprehensive Python wrapper for the GitHub API. Designed
 - Create, update, and delete files in a repository
 - Download repository tarballs
 - Manage pull requests and list commits
-- Support for multiple output formats: JSON, ZIP, TAR, XML, YAML
+- Support for multiple output formats: JSON, ZIP, TAR, XML
 
 ## Installation
 To install GitAPy, you need Python 3.x and the following dependencies:
@@ -55,14 +55,8 @@ python gitapy.py [options] [arguments]
 - `-t`, `--token`: GitHub personal access token
 - `-v`, `--version`: GitHub API version
 
-## Contributing
-Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) for details on how to submit pull requests.
-
 ## License
 This project is licensed under the [MIT License](LICENSE).
 
 ## Contact
 For any inquiries or issues, please contact Laio O. Seman at laio [at] ieee [dot] org.
-```
-
-You can also include sections like 'Examples', 'Documentation', and 'Testing' depending on how comprehensive you want the README to be.
