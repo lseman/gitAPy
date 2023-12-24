@@ -5,7 +5,7 @@ import sys
 import getopt
 import subprocess
 import os
-
+from datetime import datetime, timedelta
 """
 curl -L \
   -H "Accept: application/vnd.github+json" \
@@ -15,6 +15,7 @@ curl -L \
 """
 
 def list_commits(owner, repo, format="json"):
+
     """
     Retrieves a list of commits for a given repository.
 
@@ -30,10 +31,18 @@ def list_commits(owner, repo, format="json"):
     if format == "json":
         accept = "application/vnd.github+json"
     url = os.environ["API_URL"] + "/repos/" + owner + "/" + repo + "/commits"
+
+    # query params
+    # per_page
+    params = {"per_page": 10}
+    # since get last 10 days
+    var_date = datetime.now() - timedelta(days=10)
+    params["since"] = var_date.strftime("%Y-%m-%dT%H:%M:%SZ")
+
     authorization = "Bearer " + os.environ["TOKEN"]
     version = os.environ["API_VERSION"]
 
-    response = requests.get(url, headers={"Accept": accept, "Authorization": authorization, "X-GitHub-Api-Version": version})
+    response = requests.get(url, headers={"Accept": accept, "Authorization": authorization, "X-GitHub-Api-Version": version}, params=params)
 
     # create data
     response = response.json()

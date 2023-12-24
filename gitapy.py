@@ -9,12 +9,30 @@ from src.writing import *
 from src.pr import *
 from src.commits import *
 from src.discord import *
+
+# read config file
+def read_config():
+    # read definitions from .env file
+    with open(".config", "r") as f:
+        for line in f:
+            if line.startswith("#"):
+                continue
+            else:
+                key, value = line.strip().split("=")
+
+                # remove whitespaces
+                key = key.strip()
+                value = value.strip()
+                os.environ[key] = value
+
 # make command line arguments and help
 def __main__():
-
-
     # get command line arguments
     args = sys.argv[1:]
+
+    # read config file
+    read_config()
+
     # check if there are any arguments
     if len(args) == 0:
         
@@ -30,11 +48,12 @@ def __main__():
         print("    -h, --help: show this help message and exit")
         print("    -v, --version: show version information and exit")
         print("    -l, --list: list repository contents")
-        print("    -c, --create: create a new file")
+        print("    -a  --create: create a new file")
         print("    -u, --update: update an existing file")
         print("    -d, --delete: delete an existing file")
         print("    -t, --tarball: get repository tarball")
         print("    -p, --pulls: list pull requests")
+        print("    -c, --commits: list commits")
         print("Arguments:")
         print("    -o, --owner: repository owner")
         print("    -r, --repo: repository name")
@@ -55,7 +74,7 @@ def __main__():
 
     # create getopt function
 
-    all_options = ["help", "version", "list", "create", "update", "delete", "tarball", "pulls"]
+    all_options = ["help", "version", "list", "add", "update", "delete", 'commits', 'pulls', 'tarball']
 
     all_arguments = ["owner", "repo", "path", "message", "file", "sha", "branch", "ref", "archive", "token", "version", "json", "zip", "tar", "xml", "yaml"]
     all_arguments_cmd = ['-' + str[0] for str in all_arguments]
@@ -66,18 +85,18 @@ def __main__():
     # to find owner, the index which value is -o or --owner
     # for each arguments in argument, create a variable with the item name and the value of the next item
     for i in range(len(args)):
-        print('arg', args[i])
         if args[i] in all_arguments_cmd:
             # get index of args[i] in all_arguments_cmd
             index = all_arguments_cmd.index(args[i])
-            print('here')
             globals()[all_arguments[index]] = args[i+1]
         else:
             continue
 
     if option in ("-l", "--list"):
         list_repo_contents(owner, repo)
-    elif option in ("-c", "--create"):
+    elif option in ("-c", "--commits"):
+        list_commits(owner, repo)
+    elif option in ("-a", "--add"):
         put_repo_contents(owner, repo, path, message, file)
     elif option in ("-u", "--update"):
         put_repo_contents(owner, repo, path, message, file, sha)
@@ -92,17 +111,4 @@ def __main__():
         sys.exit(1)
 
 if __name__ == "__main__":
-    # read definitions from .env file
-    with open(".config", "r") as f:
-        for line in f:
-            if line.startswith("#"):
-                continue
-            else:
-                key, value = line.strip().split("=")
-
-                # remove whitespaces
-                key = key.strip()
-                value = value.strip()
-                os.environ[key] = value
-
     __main__()
