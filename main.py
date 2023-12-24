@@ -4,11 +4,11 @@ import getopt
 import requests
 import json
 
-from reading import *
-from writing import *
-from pr import *
-from commits import *
-from discord import *
+from src.reading import *
+from src.writing import *
+from src.pr import *
+from src.commits import *
+from src.discord import *
 # make command line arguments and help
 def __main__():
 
@@ -54,40 +54,27 @@ def __main__():
         print("    -y, --yaml: output in YAML format")
 
     # create getopt function
-    
-    try:
-        options, arguments = getopt.getopt(
-            sys.argv[1:], 
-            "h:v:lcudtpo:r:p:m:f:s:b:r:a:t:v:jzxy", 
-            [
-                "help", "version", "list", "create", "update", "delete", 
-                "tarball", "pulls", "owner=", "repo=", "path=", "message=", 
-                "file=", "sha=", "branch=", "ref=", "archive=", "token=", 
-                "json", "zip", "tar", "xml", "yaml"
-            ]
-        )
-    except getopt.GetoptError as err:
-        print(err)
-        usage()
-        sys.exit(2)
 
-    print(options)
-    print(arguments)
+    all_options = ["help", "version", "list", "create", "update", "delete", "tarball", "pulls"]
 
-    # execute option
-    option = options[0][0]
+    all_arguments = ["owner", "repo", "path", "message", "file", "sha", "branch", "ref", "archive", "token", "version", "json", "zip", "tar", "xml", "yaml"]
+    all_arguments_cmd = ['-' + str[0] for str in all_arguments]
 
-    # get arguments
-    options_dict = {key: value for key, value in options if key in ("-o", "--owner", "-r", "--repo", "-p", "--path", "-m", "--message", "-f", "--file")}
+    options = sys.argv[1:]
+    option=args[0]
 
-    owner = options_dict.get('-o') or options_dict.get('--owner')
-    repo = options_dict.get('-r') or options_dict.get('--repo')
-    path = options_dict.get('-p') or options_dict.get('--path')
-    message = options_dict.get('-m') or options_dict.get('--message')
-    file = options_dict.get('-f') or options_dict.get('--file')
+    # to find owner, the index which value is -o or --owner
+    # for each arguments in argument, create a variable with the item name and the value of the next item
+    for i in range(len(args)):
+        print('arg', args[i])
+        if args[i] in all_arguments_cmd:
+            # get index of args[i] in all_arguments_cmd
+            index = all_arguments_cmd.index(args[i])
+            print('here')
+            globals()[all_arguments[index]] = args[i+1]
+        else:
+            continue
 
-
-    print(owner, repo)
     if option in ("-l", "--list"):
         list_repo_contents(owner, repo)
     elif option in ("-c", "--create"):

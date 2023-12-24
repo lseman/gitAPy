@@ -5,7 +5,7 @@ import requests
 import json
 import subprocess
 
-from utils import get_json
+from src.utils import get_json
 
 """
 example in curl:
