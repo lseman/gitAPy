@@ -7,6 +7,8 @@ import subprocess
 from rich.console import Console
 import re
 import os
+from rich.tree import Tree
+from rich import print as rprint
 
 """
 curl -L \
@@ -67,6 +69,7 @@ def _pretty_print(data, format="json"):
 # Function to get the GitHub API response in JSON format
 def _get_json(response):
     return response.json()
+
 def _prettify(data):
     """
     Formats the given data using the jq command and prints the output with colors and formatting.
@@ -168,3 +171,92 @@ def check_archlinux_package(package):
         return True
     else:
         return False
+
+# display json with jq
+def _display_json(data):
+    """
+    Display the given data using the jq command.
+
+    Args:
+        data (dict): The JSON data to be displayed.
+
+    Returns:
+        None
+    """
+    subprocess.run(["jq", "."], input=json.dumps(data).encode("utf-8"))
+
+
+
+
+class TreeNode:
+    def __init__(self, name):
+        self.name = name
+        self.children = {}
+
+    def insert(self, path_parts):
+        if path_parts:
+            first_part = path_parts[0]
+            if first_part not in self.children:
+                self.children[first_part] = TreeNode(first_part)
+            self.children[first_part].insert(path_parts[1:])
+
+def _build_tree(paths):
+    root = TreeNode(None)  # Root node doesn't have a name
+    for path in paths:
+        parts = path.split('/')
+        root.insert(parts)
+    return root
+
+def _build_rich_tree(node, level=0):
+    # Define colors for different levels and leaf nodes
+    colors = ["bold blue", "bold green", "magenta", "cyan", "yellow"]
+    leaf_color = "bold red"
+
+    # Determine the color based on the level and whether it's a leaf
+    node_color = leaf_color if not node.children else colors[min(level, len(colors)-1)]
+
+    # Create the tree node with the determined color
+    if node.name is None:  # Root node
+        tree = Tree("Git Repo", guide_style="bold bright_blue")
+    else:
+        tree = Tree(f"[{node_color}]{node.name}[/]")
+
+    # Recursively build the tree for children
+    for _, child_node in node.children.items():
+        subtree = _build_rich_tree(child_node, level + 1)
+        tree.add(subtree)
+    return tree
+
+
+# display json as tree, geting the name of the file and the hierarchy
+def _display_as_tree(data):
+    """
+    Display the given data as a tree using the tree command.
+
+    Args:
+        data (dict): The JSON data to be displayed.
+
+    Returns:
+        None
+    """
+    paths = []
+    names = []
+    paths_only = []
+    # first get the name of the file
+    for item in data:
+        #print('path: ' + item["path"])
+        paths.append(item["path"])
+        # extract the name as the last element of the path
+        name = item["path"].split("/")[-1]
+        #print('name: ' + name)
+        names.append(name)
+        paths_only.append(item["path"].split(name)[0])
+
+    # now we have the name and the path
+    # lets use this to pretty print with rich
+    # Assuming 'data' is your list of items with paths
+    paths = [item["path"] for item in data]
+    tree_root = _build_tree(paths)
+    rich_tree = _build_rich_tree(tree_root)  # Directly pass the root
+    rprint(rich_tree)
+

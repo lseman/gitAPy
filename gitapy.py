@@ -235,7 +235,7 @@ def _pseudo_tui():
 
     # now execute selected function with the arguments
     result = funcao(*user_args)
-    _prettify(result)
+    #_prettify(result)
 
 if __name__ == "__main__":
 

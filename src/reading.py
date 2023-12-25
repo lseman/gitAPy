@@ -6,7 +6,7 @@ import json
 import subprocess
 
 from src.utils import *
-from src.utils import _prettify
+from src.utils import _prettify, _display_json, _display_as_tree
 from src.commits import get_last_commit
 
 """
@@ -47,7 +47,9 @@ def get_repository_contents(owner, repo, format="json", path=""):
             "X-GitHub-Api-Version": version,
         },
     )
-    _prettify(response.json()[0])
+    print(response.json())
+    #_prettify(response.json()[0])
+    _display_as_tree(response.json())
     return response.json()[0]
 
 
@@ -66,7 +68,9 @@ def list_repository_contents(owner, repo, format="json", recursive=False, path="
     Returns:
         None
     """
-    data = get_repo_contents(owner, repo, format, path)
+    #data = get_repo_contents(owner, repo, format, path)
+    data = get_repository_tree(owner, repo, recursive=recursive)
+
     return data
 
 # get repo releases
@@ -192,9 +196,11 @@ def get_repository_tree(owner, repo, sha='', recursive="false"):
     response = requests.get(url, headers={"Accept": accept, "Authorization": authorization, "X-GitHub-Api-Version": version}, params=params)
 
     # create data
-    response = response.json()
+    response = response.json()['tree']
 
-    return response
+    _display_as_tree(response)
+
+    return
 
 # get repositories of a given owner
 def _get_owner_repositories(owner):
@@ -219,4 +225,5 @@ def _get_owner_repositories(owner):
     response = response.json()
 
     repos = [repo['name'] for repo in response]
+
     return repos
