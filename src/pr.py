@@ -35,5 +35,4 @@ def list_pull_requests(owner, repo, format="json"):
     for item in response:
         data[item["title"]] = [item["user"]["login"], item["created_at"], item["updated_at"], item["state"]]
 
-    print(data)
-    prettify(data)
+    _prettify(data)

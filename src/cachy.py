@@ -11,6 +11,9 @@ from src.commits import *
 from src.pr import *
 from src.organization import *
 from src.reading import *
+from src.aur import *
+from src.db import *
+
 import base64
 def cachy():
     owner = "CachyOS"
@@ -39,6 +42,9 @@ def cachy_update():
 
     # get all PKGBUILD files in CachyOS-PKGBUILDs
 
+    view_db("cachyos.csv")
+    print(pato)
+
     data = get_repo_tree(owner, "CachyOS-PKGBUILDs", "master", recursive="true")
     tree = data["tree"]
     PKGBUILDS = []
@@ -48,11 +54,15 @@ def cachy_update():
             path = item["path"]
             if path.endswith("PKGBUILD"):
                 PKGBUILDS.append(path)
+
     
     # filter PKGBUILDs that do start with cachyos
     #PKGBUILDS = [x for x in PKGBUILDS if x.startswith("cachyos")]
     PKGBUILDS = [x for x in PKGBUILDS if not x.startswith("cachyos-")]
 
+    # crete database named cachyos.csv
+    create_db("cachyos.csv")
+    # add row to db
 
     # get all PKGBUILD files in CachyOS-PKGBUILDs
     for pkg in PKGBUILDS:
@@ -72,4 +82,6 @@ def cachy_update():
             url = ''
 
         print(pkgname, pkgver, pkgrel, url)
-    
+
+        # add row to db
+        write_to_db("cachyos.csv", [pkgname, pkgver, pkgrel, url])

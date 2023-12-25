@@ -5,7 +5,9 @@ import requests
 import json
 import subprocess
 
-from src.utils import get_json
+from src.utils import *
+from src.utils import _prettify
+from src.commits import get_last_commit
 
 """
 example in curl:
@@ -18,7 +20,8 @@ curl -L \
 
 
 # Get repository contents
-def get_repo_contents(owner, repo, format="json", path=""):
+
+def get_repository_contents(owner, repo, format="json", path=""):
     """
     Retrieves the contents of a repository.
 
@@ -44,11 +47,12 @@ def get_repo_contents(owner, repo, format="json", path=""):
             "X-GitHub-Api-Version": version,
         },
     )
-    return get_json(response)
+    _prettify(response.json()[0])
+    return response.json()[0]
 
 
 
-def list_repo_contents(owner, repo, format="json", recursive=False, path=""):
+def list_repository_contents(owner, repo, format="json", recursive=False, path=""):
     """
     List the contents of a repository.
 
@@ -66,7 +70,7 @@ def list_repo_contents(owner, repo, format="json", recursive=False, path=""):
     return data
 
 # get repo releases
-def get_repo_releases(owner, repo, format="json"):
+def get_repository_releases(owner, repo, format="json"):
     """
     Retrieves a list of releases for a given repository.
 
@@ -129,7 +133,7 @@ def get_file_content(owner, repo, file):
     return data
 
 # seaarch for file in repo
-def search_flle(owner, repo, file):
+def search_repository_file(owner, repo, file):
     """
     Retrieves the contents of a file in a given repository.
 
@@ -159,7 +163,7 @@ def search_flle(owner, repo, file):
     return data
 
 # get repo file tree
-def get_repo_tree(owner, repo, sha='', recursive="false"):
+def get_repository_tree(owner, repo, sha='', recursive="false"):
     """
     Retrieves the contents of a file in a given repository.
 
@@ -192,20 +196,20 @@ def get_repo_tree(owner, repo, sha='', recursive="false"):
 
     return response
 
-# get last commit
-def get_last_commit(owner, repo):
+# get repositories of a given owner
+def _get_owner_repositories(owner):
     """
-    Retrieves the contents of a file in a given repository.
+    Retrieves the repositories of a given user
 
     Parameters:
     owner (str): The owner of the repository.
-    repo (str): The name of the repository.
 
     Returns:
     None
     """
     accept = "application/vnd.github+json"
-    url = os.environ["API_URL"] + "/repos/" + owner + "/" + repo + "/commits"
+    url = os.environ["API_URL"] + "/orgs/" + owner + "/repos"
+    print(url)
     authorization = "Bearer " + os.environ["TOKEN"]
     version = os.environ["API_VERSION"]
 
@@ -214,8 +218,5 @@ def get_last_commit(owner, repo):
     # create data
     response = response.json()
 
-    data = {}
-    data["sha"] = response[0]["sha"]
-    data["url"] = response[0]["url"]
-
-    return data["sha"]
+    repos = [repo['name'] for repo in response]
+    return repos
