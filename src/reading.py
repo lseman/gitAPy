@@ -19,6 +19,7 @@ curl -L \
 """
 
 
+
 # Get repository contents
 
 def get_repository_contents(owner, repo, format="json", path=""):
@@ -167,7 +168,7 @@ def search_repository_file(owner, repo, file):
     return data
 
 # get repo file tree
-def get_repository_tree(owner, repo, sha='', recursive="false"):
+def get_repository_tree(owner, repo, sha='', recursive="false", show=False):
     """
     Retrieves the contents of a file in a given repository.
 
@@ -198,9 +199,10 @@ def get_repository_tree(owner, repo, sha='', recursive="false"):
     # create data
     response = response.json()['tree']
 
-    _display_as_tree(response)
+    if show:
+        _display_as_tree(response)
 
-    return
+    return response
 
 # get repositories of a given owner
 def _get_owner_repositories(owner):

@@ -58,6 +58,9 @@ def get_package_info(package):
     url = AUR_API + "info/" + package
 
     response = requests.get(url)
-    data = response.json()
-
-    print(data)
+    response = response.json()
+    if response["resultcount"] == 1:
+        data = response["results"][0]
+        return data
+    else:
+        return ("NotFound")

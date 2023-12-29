@@ -9,6 +9,7 @@ import re
 import os
 from rich.tree import Tree
 from rich import print as rprint
+import urllib.request
 
 """
 curl -L \
@@ -40,10 +41,12 @@ def get_repository_tarball(owner, repo, ref, format="zip"):
         format = "tarball"
     accept = "application/vnd.github+json"
     url = os.environ["API_URL"] + "/repos/" + owner + "/" + repo + "/" + format + "/" + ref
-    authorization = "Bearer " + os.environ["TOKEN"]
-    version = os.environ["API_VERSION"]
-    response = requests.get(url, headers={"Accept": accept, "Authorization": authorization, "X-GitHub-Api-Version": version})
-    return get_json(response)
+    # download the file in the url, using curl or urllib
+    urllib.request.urlretrieve(url, "repo.zip")
+    # unzip the file
+    subprocess.run(["unzip", "repo.zip"])
+    # remove the zip file
+    subprocess.run(["rm", "repo.zip"])
 
 ### geting traffic of a repo
 def get_repository_clones(owner, repo, format="json"):
@@ -166,11 +169,29 @@ def check_archlinux_package(package):
     response = requests.get(url)
     data = response.json()
 
-    print(data)
-    if data["valid"] == True:
-        return True
-    else:
-        return False
+    return data
+
+def get_archlinux_package(package):
+    """
+    Get information about a package from the official Arch Linux repositories.
+
+    Args:
+        package (str): The name of the package to get information about.
+
+    Returns:
+        dict: A dictionary containing information about the package.
+    """
+    repositores = ["core", "extra"]
+    for repo in repositores:
+        url = "https://archlinux.org/packages/" + repo + "/x86_64/" + package + "/json"
+        response = requests.get(url)
+        
+        # check if response is not 404
+        if response.status_code != 404:
+            data = response.json()
+            if data["pkgname"] == package:
+                return data
+    return 'NotFound'
 
 # display json with jq
 def _display_json(data):
@@ -184,8 +205,6 @@ def _display_json(data):
         None
     """
     subprocess.run(["jq", "."], input=json.dumps(data).encode("utf-8"))
-
-
 
 
 class TreeNode:
@@ -260,3 +279,35 @@ def _display_as_tree(data):
     rich_tree = _build_rich_tree(tree_root)  # Directly pass the root
     rprint(rich_tree)
 
+# create archlinux repository list from
+# http://archlinux.c3sl.ufpr.br/core/os/x86_64/
+# http://archlinux.c3sl.ufpr.br/extra/os/x86_64/
+
+def create_archlinux_repo_list():
+    """
+    Create a list of packages in the official Arch Linux repositories.
+
+    Returns:
+        list: A list of packages in the official Arch Linux repositories.
+    """
+    # create a list of packages
+    packages = {}
+    repositores = ["core", "extra"]
+    for repo in repositores:
+        for root, dirs, files in os.walk(repo):
+            for name in files:
+                if 'desc' in name:
+                    #print(os.path.join(root, name))
+                    with open(os.path.join(root, 'desc')) as f:
+                        for line in f:
+                            if line.startswith("%NAME%"):
+                                # get the next line as the name
+                                name = next(f)
+                                packages[name.strip()] = {}
+                            if line.startswith("%VERSION%"):
+                                # get the next line as the version
+                                version = next(f)
+                                packages[name.strip()]["pkgver"] = version.split('-')[0].strip()
+                                packages[name.strip()]["pkgrel"] = version.split('-')[1].strip()
+
+    return packages
