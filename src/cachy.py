@@ -330,6 +330,7 @@ def cachy_update():
                 aur_pkgver = versioning[0]
                 aur_pkgrel = versioning[1]
 
+                aur_pkgver = aur_pkgver.split(":")[-1]
                 console.print("AUR", aur_pkgver, aur_pkgrel)
 
                 # check if version is different

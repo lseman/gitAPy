@@ -196,7 +196,10 @@ if __name__ == "__main__":
         rprint("Author: Laio O. Seman")
         rprint("Email: laio@ieee.org")
         #read_config()
+        spacy.cli.download("en_core_web_sm")
+
         cachy_update()
+        
     else:
         # call main function
         _cmd()

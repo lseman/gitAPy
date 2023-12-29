@@ -4,27 +4,36 @@ from bs4 import BeautifulSoup, Comment
 import re
 import xml.etree.ElementTree as ET
 import math
+from src.nlp import *
 
 def replace_placeholders(url, pkgdata):
     """
     Replaces placeholders in the given URL with corresponding values from pkgdata.
+    Continues to replace until no more placeholders are found.
 
     Args:
         url (str): The URL containing placeholders to be replaced.
         pkgdata (dict): A dictionary containing key-value pairs for placeholder replacement.
 
     Returns:
-        str: The URL with placeholders replaced by their corresponding values from pkgdata.
+        str: The URL with all placeholders replaced by their corresponding values from pkgdata.
     """
     # Regular expression to match ${variable} or $variable
     regex = r"\$\{?(\w+)\}?"
 
     def replace_match(match):
         key = match.group(1)
-        return str(pkgdata.get(key, ""))  # Replace with value from pkgdata or empty string if not found
+        # Replace with value from pkgdata or keep the original placeholder if not found
+        return str(pkgdata.get(key, match.group(0)))
 
-    # Replace all placeholders in the URL
-    return re.sub(regex, replace_match, url)
+    # Keep replacing until no more placeholders are found
+    while True:
+        new_url = re.sub(regex, replace_match, url)
+        if new_url == url:
+            break
+        url = new_url
+
+    return url
 
 def extract_github_info(url, pkgdata):
     """
@@ -224,7 +233,7 @@ def is_version_format_similar_weighted(found_version, current_version, threshold
     distance = calculate_weighted_distance(found_tokens, current_tokens, weights)
     #print(found_tokens, current_tokens, distance)
 
-    return distance <= threshold
+    return distance
 
 def is_version_format_similar_euclidian(found_version, current_version, threshold=10.0):
     """
@@ -306,6 +315,25 @@ def extract_gitlab_info(url, pkgdata):
 
     return custom_url, group, project
 
+def clean_url(url):
+    """
+    Cleans the URL by removing unwanted parts.
+
+    Args:
+        url (str): The URL to be cleaned.
+
+    Returns:
+        str: The cleaned URL.
+    """
+    # Remove all .git occurrences that are not part of 'git+' protocol
+    # = re.sub(r'(?<!git)\.git', '', url)
+    pattern = r'\b(?:http(?:s)?://)\S+\b'
+    url = re.findall(pattern, url)[0]
+    # Remove unwanted characters like quotes and spaces
+    url = url.replace("'", "").replace('"', '').strip().split('#')[0]
+
+    return url
+
 def filter_candidate(candidate):
     """
     Filters the candidate string and returns the numeric part if it contains numbers.
@@ -338,33 +366,47 @@ def web_scrapper(pkgdata):
     Returns:
         str: The latest release candidate for the package, or None if not found.
     """
-    try:
-        for source in pkgdata["source"]:
+    thr = 10
+    for source in ([pkgdata["url"]] + pkgdata["source"]):
+        source = replace_placeholders(source, pkgdata)
+        try:
+            source = clean_url(source)
+        except:
+            continue
+       
+        try:
             if 'gitlab' in source:
                 custom_url, group, repo = extract_gitlab_info(source, pkgdata)
                 custom_url = custom_url.replace('"', '').replace("'", '').replace('(', '').replace(')', '')
                 candidate = get_gitlab_latest_release(custom_url, group, repo)
                 if  candidate:
                     candidate = filter_candidate(candidate)
-                if candidate and is_version_format_similar_weighted(candidate, pkgdata['pkgver']):
+                if candidate and (is_version_format_similar_weighted(candidate, pkgdata['pkgver']) <= thr):
                     return candidate
             elif "github.com" in source:
+                #print('source  github', source)
                 url = source.strip("()'")
                 owner, repo = extract_github_info(url, pkgdata)
                 candidate = get_github_latest_release(owner, repo)
                 if candidate:
                     candidate = filter_candidate(candidate)
-                if candidate and is_version_format_similar_weighted(candidate, pkgdata['pkgver']):
+                if candidate and (is_version_format_similar_weighted(candidate, pkgdata['pkgver']) <= thr):
                     return candidate
-            else:
-                #print('source', source)
-                url = pkgdata["url"].strip("'\"")
-                candidate = get_version_from_url(url, pkgdata['pkgname'])
-                #print('candidate', candidate)
-                if candidate:
-                    candidate = filter_candidate(candidate)
-                if candidate and is_version_format_similar_weighted(candidate, pkgdata['pkgver']):
-                    return candidate
-    except Exception as e:
-        print(f"Error occurred: {e}")
-        return None
+        except:
+            pass
+        url = clean_url(source)
+        try:
+            candidates = extract_version_with_ner_and_regex(url, pkgdata['pkgname'])
+            print('candidates', candidates)
+            if candidates != []:
+                candidates = [filter_candidate(candidate) for candidate in candidates]
+                candidates_weight = [is_version_format_similar_weighted(candidate, pkgdata['pkgver']) for candidate in candidates]
+
+                # return the candidate with the lowest distance
+                # first check if the  minimum is less than thr
+                if min(candidates_weight) <= thr:
+                    return candidates[candidates_weight.index(min(candidates_weight))] 
+        except:
+            pass
+
+    return None
