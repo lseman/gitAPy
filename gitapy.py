@@ -80,14 +80,15 @@ def _cmd():
     read_config()
 
     # check if there are any arguments
-    if len(args) == 0:
+    if len(args) == 0 or args[0] in ("-h", "--help"):
         rprint("GitAPy - A Python wrapper for the GitHub API", ":vampire:")
         rprint("Usage: gitapy.py [options] [arguments]")
         rprint("")
         rprint('Use "gitapy.py --help" for more information.')
         rprint("Author: Laio O. Seman")
         rprint("Email: laio@ieee.org")
-        # sys.exit(1)
+        if len(args) == 0:
+            sys.exit(0)
         rprint("")
         rprint("Usage: gitapy.py [options] [arguments]")
         rprint("")
@@ -180,116 +181,12 @@ def _cmd():
         rprint("Error: Invalid option")
 
 
-def _list_module_functions(module):
-    functions = inspect.getmembers(module, inspect.isfunction)
-    functions = [func for func, func_obj in functions if func_obj.__module__ == module.__name__]
-
-    # remove functions name with _
-    functions = [func for func in functions if not func.startswith("_")]
-    return functions
-
-
-def _get_function_list(module):
-    # get module with the name passed as argument
-    # convert string to eval
-    function_list = _list_module_functions(module)
-    return function_list
-
-
-def _encode_list(function_list):
-    function_list = "\n".join(function_list)
-    return function_list
-
-
-def _display_menu(lista):
-    lista = "\n".join(lista)
-    opcao = subprocess.run(["gum", "filter"], input=lista, text=True, stdout=subprocess.PIPE)
-    opcao = opcao.stdout.strip()
-    return opcao
-
-
-def _add_src_eval(opcao):
-    return eval("src." + opcao)
-
-
-def _eval(opcao):
-    # transform string to eval and call the function
-    return eval(opcao)
-
-
-def _pseudo_tui():
-    # list all functions
-    options = ["reading", "pr", "commits", "db"]
-    read_config()
-
-    opcao = _display_menu(options)
-    opcao = _add_src_eval(opcao)
-    funcao = _display_menu(_get_function_list(opcao))
-
-    # call funcao as a function
-    funcao = _eval(funcao)
-    # get the arguments required for the function
-    argumentos = inspect.getfullargspec(funcao).args
-    defaults = inspect.getfullargspec(funcao).defaults
-
-    if defaults != None:
-        # prepend "" to defaults until it's the same size of argumentos
-        while len(defaults) < len(argumentos):
-            defaults = ("",) + defaults
-
-    # create a list with the arguments and ask for the input with gum using subprocess
-    lista = ""
-    for item in argumentos:
-        lista += item + "\n"
-
-    user_args = []
-    for command in argumentos:
-        if defaults != None:
-            default = defaults[argumentos.index(command)]
-        else:
-            default = ""
-
-        placeholder = command
-
-        if command == "owner":
-            # get owner list from cache
-            owner_list = _get_owner_list()
-            cache = _get_cache("owners")
-            result = subprocess.run(
-                ["gum", "filter", "--no-strict"], input=cache, stdout=subprocess.PIPE, text=True
-            ).stdout.strip()
-            if result == "_new":
-                # ask for the owner
-                result = subprocess.run(
-                    ["gum", "input", "--value", str(default), "--placeholder", str(placeholder)],
-                    stdout=subprocess.PIPE,
-                    text=True,
-                ).stdout.strip()
-            _update_owner_list(result)
-            owner = str(result)
-        elif command == "repo":
-            repos = _get_owner_repositories(owner)
-            repos = _encode_list(repos)
-            result = subprocess.run(["gum", "filter"], input=repos, stdout=subprocess.PIPE, text=True).stdout.strip()
-        else:
-            result = subprocess.run(
-                ["gum", "input", "--value", str(default), "--placeholder", str(placeholder)],
-                stdout=subprocess.PIPE,
-                text=True,
-            ).stdout.strip()
-        user_args.append(result)
-
-    # now execute selected function with the arguments
-    result = funcao(*user_args)
-    # _prettify(result)
-
-
 if __name__ == "__main__":
 
     # check if no arguments were passed, if so, start iteractive mode
     # if len(sys.argv) >= 2:
     
-    if sys.argv[1] == "cachy":
+    if (len(sys.argv) == 2) and (sys.argv[1] == "cachy"):
         # call cachy function
         rprint("GitAPy - A Python wrapper for the GitHub API", ":vampire:")
         rprint("v0.1 - CODNOME: vlad eater")
@@ -300,6 +197,6 @@ if __name__ == "__main__":
         rprint("Email: laio@ieee.org")
         #read_config()
         cachy_update()
-    elif sys.argv[1] == "tui":
+    else:
         # call main function
         _cmd()
