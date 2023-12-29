@@ -98,13 +98,36 @@ def get_repository_releases(owner, repo, format="json"):
     # create data
     response = response.json()
 
-    data = {}
+    data = []
     for item in response:
-        data[item["name"]] = [item["tag_name"], item["published_at"], item["body"]]
+        data.append([item["name"],item["tag_name"], item["published_at"], item["body"]])
 
-    subprocess.run(["jq"], input=json.dumps(data), text=True)
+    #subprocess.run(["jq"], input=json.dumps(data), text=True)
 
-    return
+    return data
+
+def get_repository_latest_release(owner, repo, format="json"):
+    """
+    Retrieves a list of releases for a given repository.
+
+    Parameters:
+    owner (str): The owner of the repository.
+    repo (str): The name of the repository.
+    format (str, optional): The format of the response. Defaults to "json".
+
+    Returns:
+    None
+    """
+    if format == "json":
+        accept = "application/vnd.github+json"
+    url = os.environ["API_URL"] + "/repos/" + owner + "/" + repo + "/releases/latest"
+    authorization = "Bearer " + os.environ["TOKEN"]
+    version = os.environ["API_VERSION"]
+
+    response = requests.get(url, headers={"Accept": accept, "Authorization": authorization, "X-GitHub-Api-Version": version})
+
+    # create data
+    return response
 
 # get file contents
 def get_file_content(owner, repo, file):

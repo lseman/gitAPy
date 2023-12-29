@@ -11,7 +11,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: lseman/gitAPy
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python 3.11
         uses: actions/setup-python@v4
         with:
           python-version: 3.11
@@ -19,5 +19,8 @@ jobs:
       - name: Run gitAPy
         run: |
           ls
+          export API_URL="https://api.github.com"
+          export TOKEN=${{ secrets.GITHUB_TOKEN }}
+          export API_VERSION="2022-11-28"
           pip install -r requirements.txt
           python gitapy.py cachy

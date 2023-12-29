@@ -300,20 +300,21 @@ def create_archlinux_repo_list():
         # extract the file to a subdirectory
         subprocess.run(["mkdir", repo])
         subprocess.run(["tar", "-xf", repo + ".db.tar.gz", "-C", repo])
-    for root, dirs, files in os.walk(repo):
-        for name in files:
-            if 'desc' in name:
-                #print(os.path.join(root, name))
-                with open(os.path.join(root, 'desc')) as f:
-                    for line in f:
-                        if line.startswith("%NAME%"):
-                            # get the next line as the name
-                            name = next(f)
-                            packages[name.strip()] = {}
-                        if line.startswith("%VERSION%"):
-                            # get the next line as the version
-                            version = next(f)
-                            packages[name.strip()]["pkgver"] = version.split('-')[0].strip()
-                            packages[name.strip()]["pkgrel"] = version.split('-')[1].strip()
+    for repo in repositores:
+        for root, dirs, files in os.walk(repo):
+            for name in files:
+                if 'desc' in name:
+                    #print(os.path.join(root, name))
+                    with open(os.path.join(root, 'desc')) as f:
+                        for line in f:
+                            if line.startswith("%NAME%"):
+                                # get the next line as the name
+                                name = next(f)
+                                packages[name.strip()] = {}
+                            if line.startswith("%VERSION%"):
+                                # get the next line as the version
+                                version = next(f)
+                                packages[name.strip()]["pkgver"] = version.split('-')[0].strip()
+                                packages[name.strip()]["pkgrel"] = version.split('-')[1].strip()
 
     return packages

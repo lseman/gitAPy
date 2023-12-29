@@ -1,3 +1,3 @@
-from .gitapy import main
+from gitapy import *
 
 main()

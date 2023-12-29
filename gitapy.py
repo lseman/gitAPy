@@ -189,7 +189,7 @@ if __name__ == "__main__":
     if (len(sys.argv) == 2) and (sys.argv[1] == "cachy"):
         # call cachy function
         rprint("GitAPy - A Python wrapper for the GitHub API", ":vampire:")
-        rprint("v0.1 - CODNOME: vlad eater")
+        rprint("v0.2 - CODNOME: vlad eater")
         rprint("Usage: gitapy.py [options] [arguments]")
         rprint("")
         rprint('Use "gitapy.py --help" for more information.')

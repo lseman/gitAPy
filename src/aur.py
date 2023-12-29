@@ -37,11 +37,8 @@ def check_package_aur(package):
     # limit number of results
     query = {"limit": 10}
 
-    print(url)
     response = requests.get(url, params=query)
     data = response.json()
-
-    print(data)
 
 def get_package_info(package):
     """
