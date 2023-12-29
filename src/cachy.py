@@ -248,7 +248,7 @@ def cachy_update():
                 # check if version is different
                 if str(aur_pkgver) != pkgver:
                     console.print('WARNING: Version is different', style="bold red")
-                    create_issue('lseman', "CachyOS-PKGBUILDs", pkgname + ": version is different", "Version is different for " + pkgname + ".\n\nCachyOS: " + pkgver + "-" + pkgrel + "\nArchLinux: " + tree_version['pkgver'] + "-" + tree_version['pkgrel'] + "\n\nPlease update the package. \n\n Bip bop, I'm a bot.")
+                    create_issue('lseman', "CachyOS-PKGBUILDs", pkgname + ": version is different", "Version is different for " + pkgname + ".\n\nCachyOS: " + pkgver + "-" + pkgrel + "\nAUR: " + aur_pkgver + "-" + aur_pkgrel + "\n\nPlease update the package. \n\n Bip bop, I'm a bot.")
 
                 if str(aur_pkgrel) != pkgrel:
                     console.print('WARNING: Release is different', style="bold red")
