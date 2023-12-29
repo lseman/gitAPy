@@ -21,8 +21,6 @@ def create_issue(owner, repo, title, body, assignees=[], labels=[]):
         None
     """
 
-    print(body)
-    print(title)
     accept = "application/vnd.github+json"
     url = os.environ["API_URL"] + "/repos/" + owner + "/" + repo + "/issues"
     authorization = "Bearer " + os.environ["TOKEN"]
