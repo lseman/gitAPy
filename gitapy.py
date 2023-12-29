@@ -291,8 +291,15 @@ if __name__ == "__main__":
     
     if sys.argv[1] == "cachy":
         # call cachy function
+        rprint("GitAPy - A Python wrapper for the GitHub API", ":vampire:")
+        rprint("v0.1 - CODNOME: vlad eater")
+        rprint("Usage: gitapy.py [options] [arguments]")
+        rprint("")
+        rprint('Use "gitapy.py --help" for more information.')
+        rprint("Author: Laio O. Seman")
+        rprint("Email: laio@ieee.org")
         read_config()
         cachy_update()
     elif sys.argv[1] == "tui":
         # call main function
-        _tui()
+        _cmd()

@@ -1,0 +1,23 @@
+name: Update Cachy Files with Latest Releases
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check-bump:
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: lseman/gitAPy
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+      # You can test your matrix by printing the current Python version
+      - name: Run gitAPy
+        run: |
+          ls
+          pip install -r requirements.txt
+          python gitapy.py cachy
