@@ -204,27 +204,7 @@ def print_pacman_separator_colored():
     print(separator_line)
 
 
-def compare_versions(version1, version2):
-    """
-    Compare two version strings and return:
-    -1 if version1 < version2
-     0 if version1 == version2
-     1 if version1 > version2
-    """
-    v1_tokens = [int(n) for n in version1.split('.')]
-    v2_tokens = [int(n) for n in version2.split('.')]
 
-    # Pad the shorter version with zeros
-    max_length = max(len(v1_tokens), len(v2_tokens))
-    v1_tokens.extend([0] * (max_length - len(v1_tokens)))
-    v2_tokens.extend([0] * (max_length - len(v2_tokens)))
-
-    for v1, v2 in zip(v1_tokens, v2_tokens):
-        if v1 < v2:
-            return -1
-        elif v1 > v2:
-            return 1
-    return 0
 
 def cachy_update():
     """
@@ -312,10 +292,16 @@ def cachy_update():
 
             # check if version is different
             if str(tree_version["pkgver"]) != pkgver:
-                compare = compare_versions(tree_version["pkgver"], pkgver)
-                if compare == -1:
-                    console.print("DEBUG: Our version is newer.", style="bold blue")
+                try:
+                    compare = compare_versions(tree_version["pkgver"], pkgver)
+                    if compare == -1:
+                        console.print("DEBUG: Our version is newer.", style="bold blue")
+                        return
+                except:
+                    console.print("ERROR: Bad things happened.", style="bold red")
                     return
+
+
                 console.print("WARNING: Version is different", style="bold red")
                 # if version is different, open an issue
                 # create_issue(owner, "CachyOS-PKGBUILDs", pkgname + ": version is different", "Version is different for " + pkgname + ".\n\nCachyOS: " + pkgver + "-" + pkgrel + "\nArchLinux: " + tree_version['pkgver'] + "-" + tree_version['pkgrel'] + "\n\nPlease update the package. \n\n Bip bop, I'm a bot.")
@@ -335,9 +321,13 @@ def cachy_update():
 
                 # check if version is different
                 if str(aur_pkgver) != pkgver:
-                    compare = compare_versions(aur_pkgver, pkgver)
-                    if compare == -1:
-                        console.print("DEBUG: Our version is newer.", style="bold blue")
+                    try:
+                        compare = compare_versions(aur_pkgver, pkgver)
+                        if compare == -1:
+                            console.print("DEBUG: Our version is newer.", style="bold blue")
+                            return
+                    except:
+                        console.print("ERROR: Bad things happened.", style="bold red")
                         return
 
                     console.print("WARNING: Version is different", style="bold red")
@@ -381,9 +371,13 @@ def cachy_update():
 
             continue
         if value["pkgver"] != version:
-            compare = compare_versions(version, value["pkgver"])
-            if compare == -1:
-                console.print("DEBUG: Our version is newer.", style="bold blue")
+            try:
+                compare = compare_versions(version, value["pkgver"])
+                if compare == -1:
+                    console.print("DEBUG: Our version is newer.", style="bold blue")
+                    continue
+            except:
+                console.print("ERROR: Bad things happened.", style="bold red")
                 continue
 
             console.print("WARNING: Version is different!", style="bold red")

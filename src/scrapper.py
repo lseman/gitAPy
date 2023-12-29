@@ -356,6 +356,61 @@ def filter_candidate(candidate):
         candidate_incumbent = candidate_incumbent.split('v')[-1]
     return candidate_incumbent
 
+def compare_versions(version1, version2):
+    """
+    Compare two version strings and return:
+    -1 if version1 < version2
+     0 if version1 == version2
+     1 if version1 > version2
+    """
+    v1_tokens = [int(n) for n in version1.split('.')]
+    v2_tokens = [int(n) for n in version2.split('.')]
+
+    # Pad the shorter version with zeros
+    max_length = max(len(v1_tokens), len(v2_tokens))
+    v1_tokens.extend([0] * (max_length - len(v1_tokens)))
+    v2_tokens.extend([0] * (max_length - len(v2_tokens)))
+
+    for v1, v2 in zip(v1_tokens, v2_tokens):
+        if v1 < v2:
+            return -1
+        elif v1 > v2:
+            return 1
+    return 0
+
+def select_candidate(candidates, current_version, thr=10):
+    """
+    Selects the best candidate version.
+
+    Args:
+        candidates (list of str): Extracted candidate versions.
+        current_version (str): Current version of the package.
+        thr (int): Threshold for version 'distance'.
+
+    Returns:
+        str or None: The best candidate version if found, else None.
+    """
+    if not candidates:
+        return None
+    
+    #print('candidates', candidates)
+    #print('current_version', current_version)
+    # Filter candidates greater than or equal to current version
+    valid_candidates = [candidate for candidate in candidates if compare_versions(candidate, current_version) >= 0]
+
+    # Calculate weighted 'distance' for each candidate
+    candidates_weight = [(candidate, is_version_format_similar_weighted(candidate, current_version)) for candidate in valid_candidates]
+
+    # Filter based on threshold and select the best candidate
+    filtered_candidates = [candidate for candidate, weight in candidates_weight if weight <= thr]
+
+    if filtered_candidates:
+        # Select the candidate with the maximum weight (still under the threshold)
+        return max(filtered_candidates, key=lambda c: is_version_format_similar_weighted(c, current_version))
+
+    return None
+
+
 def web_scrapper(pkgdata):
     """
     Scrape the web to find the latest release candidate for a given package.
@@ -373,6 +428,7 @@ def web_scrapper(pkgdata):
             source = clean_url(source)
         except:
             continue
+        #print('source', source)
        
         try:
             if 'gitlab' in source:
@@ -394,19 +450,18 @@ def web_scrapper(pkgdata):
                     return candidate
         except:
             pass
-        url = clean_url(source)
-        try:
-            candidates = extract_version_with_ner_and_regex(url, pkgdata['pkgname'])
-            print('candidates', candidates)
-            if candidates != []:
-                candidates = [filter_candidate(candidate) for candidate in candidates]
-                candidates_weight = [is_version_format_similar_weighted(candidate, pkgdata['pkgver']) for candidate in candidates]
-
-                # return the candidate with the lowest distance
-                # first check if the  minimum is less than thr
-                if min(candidates_weight) <= thr:
-                    return candidates[candidates_weight.index(min(candidates_weight))] 
-        except:
-            pass
-
+        #print('manual try', source)
+        if 'github.com' in source:
+            continue
+        #try:
+        candidates = extract_version_with_ner_and_regex(source, pkgdata['pkgname'])
+        #print('candidates', candidates)
+        if candidates != []:
+            candidates = [filter_candidate(candidate) for candidate in candidates]
+            try:
+                candidato = selected_candidate = select_candidate(candidates, pkgdata['pkgver'], thr)
+            except:
+                candidato = None
+            if candidato:
+                return candidato
     return None

@@ -21,6 +21,7 @@ from src.fork import *
 from src.caching import _get_owner_list, _update_owner_list
 from src.cachy import *
 
+
 # import _ functions also
 from src.reading import _get_owner_repositories
 from src.utils import _prettify
@@ -178,7 +179,7 @@ def _cmd():
         merge_fork_upstream(owner, repo, branch)
     else:
         # handle other options or show an error
-        rprint("Error: Invalid option")
+        rprint("Error: Invalid o;ption")
 
 
 if __name__ == "__main__":
@@ -196,7 +197,7 @@ if __name__ == "__main__":
         rprint("Author: Laio O. Seman")
         rprint("Email: laio@ieee.org")
         #read_config()
-        spacy.cli.download("en_core_web_sm")
+        
 
         cachy_update()
         

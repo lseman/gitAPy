@@ -6,43 +6,60 @@ import requests
 # Load spaCy's English language model
 nlp = spacy.load("en_core_web_sm")
 
+def extract_version_with_ner_and_regex(url, pkgname):
+    """
+    Extracts version numbers from a webpage using NER and regex.
 
-async def extract_version_with_ner_and_regex(session, url, pkgname, current_version_format):
-    try:
-        headers = {'User-Agent': 'Your Custom User-Agent'}
-        async with session.get(url, headers=headers) as response:
-            response.raise_for_status()
-            text = await response.text()
+    Args:
+        url (str): URL of the webpage.
+        pkgname (str): Name of the package.
 
-            # Use current version format to create a more targeted regex
-            version_regex = create_version_regex(pkgname, current_version_format)
-            candidates = re.findall(version_regex, text, re.IGNORECASE)
+    Returns:
+        str or None: Extracted version number, if found.
+    """
 
-            # Process candidates with spaCy for further refinement
-            refined_candidates = []
-            for candidate in candidates:
-                if is_valid_version(candidate, nlp):
-                    refined_candidates.append(candidate)
+    # first filter the url to get the webpage
+    #print( "url: ", url)
+    
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, 'html.parser')
+    text = soup.get_text()
+    #print( "text: ", text)
+    
+    candidates = []
+    # Using spaCy NER to find potential version numbers
+    doc = nlp(text)
+    for ent in doc.ents:
+        if ent.label_ == "CARDINAL":  # 'CARDINAL' often represents numbers in spaCy
+            version = extract_version_from_text(ent.text, pkgname)
+            #print( "version: ", version)
+            if version:
+                candidates.append(version)
+                
 
-            return refined_candidates
+    # Fallback to regex if NER doesn't find anything
+    version = extract_version_from_text(text, pkgname)
+    if version:
+        candidates.append(version)
+    #print( "version: ", version)
+    return candidates
 
-    except Exception as e:
-        print(f"Error during requests to {url}: {e}")
-        return None
+def extract_version_from_text(text, pkgname):
+    """
+    Extracts version number from text using regular expressions.
 
-def create_version_regex(pkgname, current_version_format):
-    # Create a regex pattern based on the current version format
-    # Customize this function based on your specific version format
+    Args:
+        text (str): Text to search within.
+        pkgname (str): Name of the package.
+
+    Returns:
+        str or None: Extracted version number, if found.
+    """
     escaped_pkgname = re.escape(pkgname)
-    version_pattern = re.escape(current_version_format).replace(r'\d+', r'\d+')
-    return fr"(?:Version\s*|{escaped_pkgname} )?{version_pattern}"
+    version_regex = r"(?:Version\s*|{} )?v?\d+\.\d+(?:\.\d+)*(?:-\w+)?".format(escaped_pkgname)
+    match = re.search(version_regex, text, re.IGNORECASE)
+    if match:
+        return match.group().split(" ")[-1]  # Return only the version number
+    return None
 
-def is_valid_version(version, nlp):
-    # Use spaCy to further validate the version
-    doc = nlp(version)
-    return any(ent.label_ == "CARDINAL" for ent in doc.ents)
 
-async def main(urls, pkgname, current_version_format):
-    async with ClientSession() as session:
-        tasks = [extract_version_with_ner_and_regex(session, url, pkgname, current_version_format) for url in urls]
-        return await asyncio.gather(*tasks)
