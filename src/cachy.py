@@ -380,4 +380,9 @@ def cachy_update():
 
             continue
         if value["pkgver"] != version:
+            compare = compare_versions(version, value["pkgver"])
+            if compare == -1:
+                console.print("DEBUG: Our version is newer.", style="bold blue")
+                continue
+
             console.print("WARNING: Version is different!", style="bold red")
