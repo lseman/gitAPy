@@ -298,7 +298,7 @@ if __name__ == "__main__":
         rprint('Use "gitapy.py --help" for more information.')
         rprint("Author: Laio O. Seman")
         rprint("Email: laio@ieee.org")
-        read_config()
+        #read_config()
         cachy_update()
     elif sys.argv[1] == "tui":
         # call main function
