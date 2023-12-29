@@ -15,6 +15,7 @@ from src.aur import *
 from src.db import *
 from src.utils import *
 from src.aur import *
+from src.issues import *
 # import console from rich
 from rich.console import Console
 
@@ -178,7 +179,6 @@ def cachy_update():
     owner = "CachyOS"
     print_logo()
     console = Console()
-
     get_repository_tarball(owner, "CachyOS-PKGBUILDs", "master", "zip")
 
     for root, dirs, files in os.walk("."):
@@ -198,6 +198,7 @@ def cachy_update():
                     package_data = extract_package_data(content)
                     keys[package_data["pkgname"]] = package_data
     
+    tree = create_archlinux_repo_list()
     # retrieve PKGBUILD info
     def check_versions(key, value):
         # if cachy is in the name, skip
@@ -219,8 +220,7 @@ def cachy_update():
         console.print('Checking version against Arch Linux official repositories', style="blue")
         console.print('Package name:', pkgname, style="bold")
         console.print('CachyOS:', pkgver, pkgrel)
-
-        tree = create_archlinux_repo_list()
+        
         # check if key is a key in tree_version
         if key in tree:
             tree_version = tree[key]
@@ -229,6 +229,9 @@ def cachy_update():
             # check if version is different
             if str(tree_version['pkgver']) != pkgver:
                 console.print('WARNING: Version is different', style="bold red")
+                # if version is different, open an issue
+                create_issue(owner, "CachyOS-PKGBUILDs", pkgname + ": version is different", "Version is different for " + pkgname + ".\n\nCachyOS: " + pkgver + "-" + pkgrel + "\nArchLinux: " + tree_version['pkgver'] + "-" + tree_version['pkgrel'] + "\n\nPlease update the package. \n\n Bip bop, I'm a bot.")
+                # create_issue(owner, "CachyOS-PKGBUILDs", "Version is different", "Version is different for " + pkgname + ".\n\nCachyOS: " + pkgver + "-" + pkgrel + "\nArchLinux: " + tree_version['pkgver'] + "-" + tree_version['pkgrel'] + "\n\nPlease update the package.", "bug")
             if str(tree_version['pkgrel']) != pkgrel:
                 console.print('WARNING: Release is different', style="bold red")
         else:
@@ -245,6 +248,8 @@ def cachy_update():
                 # check if version is different
                 if str(aur_pkgver) != pkgver:
                     console.print('WARNING: Version is different', style="bold red")
+                    create_issue(owner, "CachyOS-PKGBUILDs", pkgname + ": version is different", "Version is different for " + pkgname + ".\n\nCachyOS: " + pkgver + "-" + pkgrel + "\nArchLinux: " + tree_version['pkgver'] + "-" + tree_version['pkgrel'] + "\n\nPlease update the package. \n\n Bip bop, I'm a bot.")
+
                 if str(aur_pkgrel) != pkgrel:
                     console.print('WARNING: Release is different', style="bold red")
             else:
