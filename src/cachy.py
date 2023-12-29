@@ -179,6 +179,8 @@ def cachy_update():
     print_logo()
     console = Console()
 
+    get_repository_tarball(owner, "CachyOS-PKGBUILDs", "master", "zip")
+
     for root, dirs, files in os.walk("."):
         for name in dirs:
             if "CachyOS-PKGBUILDS" in name:
