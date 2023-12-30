@@ -21,6 +21,7 @@ from src.fork import *
 from src.caching import _get_owner_list, _update_owner_list
 from src.cachy import *
 
+from src.watcher import *
 
 # import _ functions also
 from src.reading import _get_owner_repositories
@@ -202,7 +203,24 @@ if __name__ == "__main__":
                 read_config() 
 
         cachy_update()
-        
+        sys.exit(0)
+
+    if (len(sys.argv) >= 2) and (sys.argv[1] == "watcher"):
+        # call cachy function
+        rprint("GitAPy - A Python wrapper for the GitHub API", ":vampire:")
+        rprint("v0.2 - CODNOME: vlad eater")
+        rprint("Usage: gitapy.py [options] [arguments]")
+        rprint("")
+        rprint('Use "gitapy.py --help" for more information.')
+        rprint("Author: Laio O. Seman")
+        rprint("Email: laio@ieee.org")
+
+        if len(sys.argv) == 3:
+            if sys.argv[2] == "-debug":
+                read_config()
+
+        do_watch()
+        sys.exit(0)
     else:
         # call main function
         _cmd()
