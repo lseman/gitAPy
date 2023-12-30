@@ -1,5 +1,12 @@
 .config
 
+# cache
+extra/
+core/
+CachyOS*/
+extra*
+core*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

@@ -41,3 +41,29 @@ def create_issue(owner, repo, title, body, assignees=[], labels=[]):
     #print(response)
 
     return data
+
+def list_issues(owner, repo):
+    """
+    Lists all issues in a given repository.
+
+    Args:
+        owner (str): The owner of the repository.
+        repo (str): The name of the repository.
+
+    Returns:
+        None
+    """
+
+    accept = "application/vnd.github+json"
+    url = os.environ["API_URL"] + "/repos/" + owner + "/" + repo + "/issues"
+    authorization = "Bearer " + os.environ["TOKEN"]
+    version = os.environ["API_VERSION"]
+
+    response = requests.get(url, headers={"Accept": accept, "Authorization": authorization, "X-GitHub-Api-Version": version})
+
+    # create data
+    response = response.json()
+
+    #print(response)
+
+    return response

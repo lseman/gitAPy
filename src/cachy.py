@@ -204,7 +204,48 @@ def print_pacman_separator_colored():
     print(separator_line)
 
 
+def get_diff(content1, content2):
+    """
+    Gets the diff between two strings.
 
+    Args:
+        content1 (str): The first string.
+        content2 (str): The second string.
+
+    Returns:
+        str: The diff between the two strings.
+    """
+    # generate temporary files
+    with open("temp1", "w") as f:
+        f.write(content1)
+    with open("temp2", "w") as f:
+        f.write(content2)
+
+    diff = subprocess.run(["diff", "-u", "temp1", "temp2"], stdout=subprocess.PIPE)
+    #subprocess.run(["diff", "-u", "temp1", "temp2"], stdout=subprocess.PIPE)
+    # remove temporary files
+    os.remove("temp1")
+    os.remove("temp2")
+    return diff.stdout.decode("utf-8")
+
+def analyze_pkg(current, incumbent):
+    # check if version is different
+    if str(current) != incumbent:
+        try:
+            compare = compare_versions(incumbent, current)
+            if compare == -1:
+                console.print("DEBUG: Our version is newer.", style="bold blue")
+                return
+        except:
+            console.print("ERROR: Bad things happened.", style="bold red")
+            return
+
+
+def check_issue(pkgver, issues):
+    for issue in issues:
+        if pkgver in issue:
+            return True
+    return False
 
 def cachy_update():
     """
@@ -225,10 +266,13 @@ def cachy_update():
     - get_package_info(pkgname): Retrieves package information from AUR.
 
     """
-    owner = "CachyOS"
     print_logo()
     console = Console()
-    get_repository_tarball(owner, "CachyOS-PKGBUILDs", "master", "zip")
+    if os.environ.get("GITAPY_CACHE") == None:
+        get_repository_tarball('CachyOS', "CachyOS-PKGBUILDs", "master", "zip")
+
+    issues = list_issues("CachyOS", "CachyOS-PKGBUILDs")
+    issues = [issue["title"] for issue in issues]
 
     for root, dirs, files in os.walk("."):
         for name in dirs:
@@ -254,19 +298,16 @@ def cachy_update():
                         continue
                     if "nvidia" in package_data["pkgname"]:
                         continue
+                    package_data["content"] = content
+                    # convert content to string, using newline as separator
+                    package_data["content"] = "\n".join(package_data["content"])
+
                     keys[package_data["pkgname"]] = package_data
 
-    # create a web scrapper to visit the url and try to get the latest package version
-    # teste = get_version_from_url('https://www.sqlite.org/')
-    # print(teste)
-    # print(pato)
     tree = create_archlinux_repo_list()
 
     # retrieve PKGBUILD info
     def check_versions(key, value):
-        # if cachy is in the name, skip
-        # if "cachy" in key:
-        #    return
 
         # print separator line like a pacman eating dots or rasputin
         # print_pacman_separator_colored()
@@ -301,8 +342,17 @@ def cachy_update():
                     console.print("ERROR: Bad things happened.", style="bold red")
                     return
 
-
+                # get diff from content
+                #diff = get_diff(value["content"], tree_version["content"])
+                #console.print(diff)
                 console.print("WARNING: Version is different", style="bold red")
+
+                if check_issue(pkgver, issues):
+                    console.print("DEBUG: Issue already exists, not creating another issue.", style="bold blue")
+                    return
+                else:
+                    console.print("DEBUG: Issue does not exist, creating new issue.", style="bold blue")
+                
                 # if version is different, open an issue
                 # create_issue(owner, "CachyOS-PKGBUILDs", pkgname + ": version is different", "Version is different for " + pkgname + ".\n\nCachyOS: " + pkgver + "-" + pkgrel + "\nArchLinux: " + tree_version['pkgver'] + "-" + tree_version['pkgrel'] + "\n\nPlease update the package. \n\n Bip bop, I'm a bot.")
             if str(tree_version["pkgrel"]) != pkgrel:
@@ -329,8 +379,15 @@ def cachy_update():
                     except:
                         console.print("ERROR: Bad things happened.", style="bold red")
                         return
-
+    
                     console.print("WARNING: Version is different", style="bold red")
+
+                    if check_issue(pkgver, issues):
+                        console.print("DEBUG: Issue already exists, not creating another issue.", style="bold blue")
+                        return
+                    else:
+                        console.print("DEBUG: Issue does not exist, creating new issue.", style="bold blue")
+
                     # create_issue(owner, "CachyOS-PKGBUILDs", pkgname + ": version is different", "Version is different for " + pkgname + ".\n\nCachyOS: " + pkgver + "-" + pkgrel + "\nAUR: " + aur_pkgver + "-" + aur_pkgrel + "\n\nPlease update the package. \n\n Bip bop, I'm a bot.")
 
                 if str(aur_pkgrel) != pkgrel:
@@ -381,3 +438,11 @@ def cachy_update():
                 continue
 
             console.print("WARNING: Version is different!", style="bold red")
+            if check_issue(value['pkgname'], issues):
+                console.print("DEBUG: Issue already exists, not creating another issue.", style="bold blue")
+                return
+            else:
+                console.print("DEBUG: Issue does not exist, creating new issue.", style="bold blue")
+            
+            # if version is different, open an issue
+            # create_issue(owner, "CachyOS-PKGBUILDs", pkgname + ": version is different", "Version is different for " + pkgname + ".\n\nCachyOS: " + pkgver + "-" + pkgrel + "\nArchLinux: " + tree_version['pkgver'] + "-" + tree_version['pkgrel'] + "\n\nPlease update the package. \n\n Bip bop, I'm a bot.")

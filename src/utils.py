@@ -293,13 +293,15 @@ def create_archlinux_repo_list():
     # create a list of packages
     packages = {}
     repositores = ["core", "extra"]
-    for repo in repositores:
-        download = "http://archlinux.c3sl.ufpr.br/" + repo + "/os/x86_64/" + repo + ".db.tar.gz"
-        # download the file
-        subprocess.run(["wget", download])
-        # extract the file to a subdirectory
-        subprocess.run(["mkdir", repo])
-        subprocess.run(["tar", "-xf", repo + ".db.tar.gz", "-C", repo])
+
+    # check if os env GITAPY_CACHE is set
+    if os.environ.get("GITAPY_CACHE") == None:
+        for repo in repositores:
+            download = "http://archlinux.c3sl.ufpr.br/" + repo + "/os/x86_64/" + repo + ".db.tar.gz"
+            subprocess.run(["wget", download])
+            subprocess.run(["mkdir", repo])
+            subprocess.run(["tar", "-xf", repo + ".db.tar.gz", "-C", repo])
+    
     for repo in repositores:
         for root, dirs, files in os.walk(repo):
             for name in files:
@@ -316,5 +318,11 @@ def create_archlinux_repo_list():
                                 version = next(f)
                                 packages[name.strip()]["pkgver"] = version.split('-')[0].strip()
                                 packages[name.strip()]["pkgrel"] = version.split('-')[1].strip()
+
+                        # reset the file pointer
+                        f.seek(0)
+                        packages[name.strip()]["content"] = f.readlines()
+                        # convert list to string, using newline
+                        packages[name.strip()]["content"] = '\n'.join(packages[name.strip()]["content"])
 
     return packages

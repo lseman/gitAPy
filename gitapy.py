@@ -187,7 +187,7 @@ if __name__ == "__main__":
     # check if no arguments were passed, if so, start iteractive mode
     # if len(sys.argv) >= 2:
     
-    if (len(sys.argv) == 2) and (sys.argv[1] == "cachy"):
+    if (len(sys.argv) >= 2) and (sys.argv[1] == "cachy"):
         # call cachy function
         rprint("GitAPy - A Python wrapper for the GitHub API", ":vampire:")
         rprint("v0.2 - CODNOME: vlad eater")
@@ -196,8 +196,10 @@ if __name__ == "__main__":
         rprint('Use "gitapy.py --help" for more information.')
         rprint("Author: Laio O. Seman")
         rprint("Email: laio@ieee.org")
-        #read_config()
         
+        if len(sys.argv) == 3:
+            if sys.argv[2] == "-debug":
+                read_config() 
 
         cachy_update()
         

@@ -332,6 +332,10 @@ def clean_url(url):
     # Remove unwanted characters like quotes and spaces
     url = url.replace("'", "").replace('"', '').strip().split('#')[0]
 
+    # while there is a .git in the url, remove it
+    while '.git' in url:
+        url = url.replace('.git', '')
+
     return url
 
 def filter_candidate(candidate):
@@ -422,13 +426,17 @@ def web_scrapper(pkgdata):
         str: The latest release candidate for the package, or None if not found.
     """
     thr = 10
+    visited = []
     for source in ([pkgdata["url"]] + pkgdata["source"]):
         source = replace_placeholders(source, pkgdata)
         try:
             source = clean_url(source)
         except:
             continue
-        #print('source', source)
+        print('source', source)
+        if source in visited:
+            continue
+        visited.append(source)
        
         try:
             if 'gitlab' in source:
