@@ -294,6 +294,14 @@ def create_archlinux_repo_list():
     packages = {}
     repositores = ["core", "extra"]
 
+    # check if os env GITAPY_CACHE is set
+    if os.environ.get("GITAPY_CACHE") == None:
+        for repo in repositores:
+            download = "http://archlinux.c3sl.ufpr.br/" + repo + "/os/x86_64/" + repo + ".db.tar.gz"
+            subprocess.run(["wget", download])
+            subprocess.run(["mkdir", repo])
+            subprocess.run(["tar", "-xf", repo + ".db.tar.gz", "-C", repo])
+    
     for repo in repositores:
         for root, dirs, files in os.walk(repo):
             for name in files:
