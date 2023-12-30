@@ -462,14 +462,17 @@ def web_scrapper(pkgdata):
         if 'github.com' in source:
             continue
         #try:
-        candidates = extract_version_with_ner_and_regex(source, pkgdata['pkgname'])
-        #print('candidates', candidates)
-        if candidates != []:
-            candidates = [filter_candidate(candidate) for candidate in candidates]
-            try:
-                candidato = selected_candidate = select_candidate(candidates, pkgdata['pkgver'], thr)
-            except:
-                candidato = None
-            if candidato:
-                return candidato
+        try:
+            candidates = extract_version_with_ner_and_regex(source, pkgdata['pkgname'])
+            #print('candidates', candidates)
+            if candidates != []:
+                candidates = [filter_candidate(candidate) for candidate in candidates]
+                try:
+                    candidato = select_candidate(candidates, pkgdata['pkgver'], thr)
+                except:
+                    candidato = None
+                if candidato:
+                    return candidato
+        except:
+            continue
     return None
