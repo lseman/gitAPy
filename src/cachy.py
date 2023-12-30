@@ -354,7 +354,8 @@ def cachy_update():
                     console.print("DEBUG: Issue does not exist, creating new issue.", style="bold blue")
                 
                 # if version is different, open an issue
-                # create_issue(owner, "CachyOS-PKGBUILDs", pkgname + ": version is different", "Version is different for " + pkgname + ".\n\nCachyOS: " + pkgver + "-" + pkgrel + "\nArchLinux: " + tree_version['pkgver'] + "-" + tree_version['pkgrel'] + "\n\nPlease update the package. \n\n Bip bop, I'm a bot.")
+                    create_issue(owner, "CachyOS-PKGBUILDs", pkgname + ": version is different", "Version is different for " + pkgname + ".\n\nCachyOS: " + pkgver + "-" + pkgrel + "\nArchLinux: " + tree_version['pkgver'] + "-" + tree_version['pkgrel'] + "\n\nPlease update the package. \n\n Bip bop, I'm a bot.")
+                    return
             if str(tree_version["pkgrel"]) != pkgrel:
                 console.print("WARNING: Release is different", style="bold red")
         else:
@@ -388,8 +389,8 @@ def cachy_update():
                     else:
                         console.print("DEBUG: Issue does not exist, creating new issue.", style="bold blue")
 
-                    # create_issue(owner, "CachyOS-PKGBUILDs", pkgname + ": version is different", "Version is different for " + pkgname + ".\n\nCachyOS: " + pkgver + "-" + pkgrel + "\nAUR: " + aur_pkgver + "-" + aur_pkgrel + "\n\nPlease update the package. \n\n Bip bop, I'm a bot.")
-
+                        create_issue(owner, "CachyOS-PKGBUILDs", pkgname + ": version is different", "Version is different for " + pkgname + ".\n\nCachyOS: " + pkgver + "-" + pkgrel + "\nAUR: " + aur_pkgver + "-" + aur_pkgrel + "\n\nPlease update the package. \n\n Bip bop, I'm a bot.")
+                        return
                 if str(aur_pkgrel) != pkgrel:
                     console.print("WARNING: Release is different", style="bold red")
             else:
@@ -444,5 +445,5 @@ def cachy_update():
             else:
                 console.print("DEBUG: Issue does not exist, creating new issue.", style="bold blue")
             
-            # if version is different, open an issue
-            # create_issue(owner, "CachyOS-PKGBUILDs", pkgname + ": version is different", "Version is different for " + pkgname + ".\n\nCachyOS: " + pkgver + "-" + pkgrel + "\nArchLinux: " + tree_version['pkgver'] + "-" + tree_version['pkgrel'] + "\n\nPlease update the package. \n\n Bip bop, I'm a bot.")
+                # if version is different, open an issue
+                create_issue(owner, "CachyOS-PKGBUILDs", value['pkgname'] + ": version is different", "Version is different for " + value['pkgname'] + ".\n\nCachyOS: " + value['pkgver'] + "-" + value['pkgrel'] + "\nUpstream:" + version + "\n\nPlease update the package. \n\n Bip bop, I'm a bot.")
