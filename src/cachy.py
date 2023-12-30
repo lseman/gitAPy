@@ -268,6 +268,7 @@ def cachy_update():
     """
     print_logo()
     console = Console()
+    owner = "CachyOS"
     if os.environ.get("GITAPY_CACHE") == None:
         get_repository_tarball('CachyOS', "CachyOS-PKGBUILDs", "master", "zip")
 
