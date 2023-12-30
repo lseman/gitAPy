@@ -34,9 +34,10 @@ def get_diff(a, b):
         f.write(b)
     
     # Execute diff -u on the files
-    diff = subprocess.run(["diff", "-u", "file_a", "file_b"], capture_output=True)
-    
-    return diff.stdout.decode("utf-8")
+    subprocess.run("diff -u file_a file_b > mission", shell=True)
+    with open("mission", "r") as f:
+        diferenca = f.read()
+    return diferenca
 
 
 def do_watch():
@@ -57,8 +58,11 @@ def do_watch():
     # get the index in comentario splited in which #capybara is contained
     index_capybara_tag = next((i for i, s in enumerate(comentario_splited) if capybara_tag in s), None)
     #print(index_capybara_tag)
-    comando, arg = comentario_splited[index_capybara_tag].split(":")[1], comentario_splited[index_capybara_tag].split(":")[2]
-    print(comando, arg)
+    try:
+        comando, arg = comentario_splited[index_capybara_tag].split(":")[1], comentario_splited[index_capybara_tag].split(":")[2]
+        print(comando, arg)
+    except:
+        return
 
 
     if comando == "diff":
@@ -90,11 +94,12 @@ def do_watch():
         if request.status_code == 200:
             # create a file with the PKGBUILD content
             arch_content = request.text
-            diff = get_diff(arch_content, cachy_content)
-            
-            comment_issue("CachyOS", "CachyOS-PKGBUILDs", os.environ["NUMBER"], diff)
-        else:
-            print("Error: ", request.status_code)
+
+            if "<!DOCTYPE html>" in arch_content:
+                print("Error: not in arch repos")
+            else:
+                diff = get_diff(arch_content, cachy_content)    
+                comment_issue("CachyOS", "CachyOS-PKGBUILDs", os.environ["NUMBER"], diff)
         
         # lets try aur now
         # geting url from https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h= + arg
@@ -104,9 +109,9 @@ def do_watch():
         if request.status_code == 200:
             # create a file with the PKGBUILD content
             aur_content = request.text
-            diff = get_diff(aur_content, cachy_content)
-            comment_issue("CachyOS", "CachyOS-PKGBUILDs", os.environ["NUMBER"], diff)
-
-        else:
-            print("Error: ", request.status_code)
+            if "<!DOCTYPE html>" in aur_content:
+                print("Error: not in aur repos")
+            else:
+                diff = get_diff(aur_content, cachy_content)
+                comment_issue("CachyOS", "CachyOS-PKGBUILDs", os.environ["NUMBER"], diff)
 
