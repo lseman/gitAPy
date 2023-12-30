@@ -348,7 +348,7 @@ def cachy_update():
                 #console.print(diff)
                 console.print("WARNING: Version is different", style="bold red")
 
-                if check_issue(pkgver, issues):
+                if check_issue(pkgname, issues):
                     console.print("DEBUG: Issue already exists, not creating another issue.", style="bold blue")
                     return
                 else:
@@ -384,7 +384,7 @@ def cachy_update():
     
                     console.print("WARNING: Version is different", style="bold red")
 
-                    if check_issue(pkgver, issues):
+                    if check_issue(pkgname, issues):
                         console.print("DEBUG: Issue already exists, not creating another issue.", style="bold blue")
                         return
                     else:
@@ -447,4 +447,4 @@ def cachy_update():
                 console.print("DEBUG: Issue does not exist, creating new issue.", style="bold blue")
             
                 # if version is different, open an issue
-                create_issue(owner, "CachyOS-PKGBUILDs", value['pkgname'] + ": version is different", "Version is different for " + value['pkgname'] + ".\n\nCachyOS: " + value['pkgver'] + "-" + value['pkgrel'] + "\nUpstream:" + version + "\n\nPlease update the package. \n\n Bip bop, I'm a bot.")
+                create_issue(owner, "CachyOS-PKGBUILDs", value['pkgname'] + ": version is different", "Version is different for " + value['pkgname'] + ".\n\nCachyOS: " + value['pkgver'] + "-" + value['pkgrel'] + "\nUpstream: " + version + "\n\nPlease update the package. \n\n Bip bop, I'm a bot.")
