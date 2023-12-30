@@ -115,7 +115,7 @@ def comment_issue(owner, repo, number, body):
     version = os.environ["API_VERSION"]
 
     data = {}
-    data["body"] = "```\n" + body + "```\n"
+    data["body"] = "```bash\n" + body + "```\n"
 
     response = requests.post(url, headers={"Accept": accept, "Authorization": authorization, "X-GitHub-Api-Version": version}, data=json.dumps(data))
 
