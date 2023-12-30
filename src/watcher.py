@@ -20,7 +20,7 @@ from src.utils import _display_json
 # import console from rich
 from rich.console import Console
 from src.scrapper import *
-
+from src.cachy import extract_package_data
 import base64
 import subprocess
 
@@ -39,7 +39,30 @@ def get_diff(a, b):
         diferenca = f.read()
     return diferenca
 
+def find_cachy_pkgbuild(arg, folder):
+    keys = {}
+    for root, dirs, files in os.walk(folder):
+        for name in files:
+            if name == "PKGBUILD":
+                if "cachy" not in name:
+                    # read file and extract package data
+                    with open(os.path.join(root, name), "r") as f:
+                        content = f.read()
+                    package_data = extract_package_data(content)
+                    
+                    try:
+                        if package_data["pkgname"]:
+                            if arg in package_data["pkgname"]:
+                                return content
+                    except:
+                        pass
 
+                    try:
+                        if package_data["pkgbase"]:
+                            if arg in package_data["pkgbase"]:
+                                return content
+                    except:
+                        pass
 def do_watch():
     # get os.environ NUMBER, which represents issue number
     #issue_number = 93
@@ -64,7 +87,6 @@ def do_watch():
     except:
         return
 
-
     if comando == "diff":
         # get issue title
         if os.environ.get("GITAPY_CACHE") == None:
@@ -76,17 +98,7 @@ def do_watch():
                     folder = name
                     break
 
-        for root, dirs, files in os.walk(folder):
-            for name in dirs:
-                if arg in name:
-                    folder_pkg = name
-                    break
-
-        # get cachy pkgbuild content
-        with open(folder + "/" + folder_pkg + "/PKGBUILD", "r") as f:
-            cachy_content = f.read()
-
-        #print(cachy_content)
+        cachy_content = find_cachy_pkgbuild(arg, folder)
 
         # get the PKGBUILD file from the https://gitlab.archlinux.org/archlinux/packaging/packages/ + arg + /-/raw/main/PKGBUILD
         request = requests.get("https://gitlab.archlinux.org/archlinux/packaging/packages/" + arg + "/-/raw/main/PKGBUILD")
