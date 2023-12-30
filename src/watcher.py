@@ -34,7 +34,7 @@ def get_diff(a, b):
         f.write(b)
     
     # Execute diff -u on the files
-    subprocess.run("diff -u file_a file_b > mission", shell=True)
+    subprocess.run("diff -u file_b file_a > mission", shell=True)
     with open("mission", "r") as f:
         diferenca = f.read()
     return diferenca
