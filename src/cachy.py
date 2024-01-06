@@ -20,6 +20,7 @@ from src.issues import *
 # import console from rich
 from rich.console import Console
 from src.scrapper import *
+import shlex
 
 import base64
 
@@ -247,6 +248,15 @@ def check_issue(pkgver, issues):
             return True
     return False
 
+def parse_source_string(source_string):
+    # Strip the outer parentheses
+    trimmed = source_string.strip("()")
+
+    # Use shlex.split to correctly handle spaces within quotes
+    parsed_list = shlex.split(trimmed)
+
+    return parsed_list
+
 def cachy_update():
     """
     Update the CachyOS packages by checking their versions against Arch Linux official repositories and AUR.
@@ -271,7 +281,7 @@ def cachy_update():
     owner = "CachyOS"
     if os.environ.get("GITAPY_CACHE") == None:
         get_repository_tarball('CachyOS', "CachyOS-PKGBUILDs", "master", "zip")
-
+    
     issues = list_issues("CachyOS", "CachyOS-PKGBUILDs")
     issues = [issue["title"] for issue in issues]
 
@@ -281,15 +291,40 @@ def cachy_update():
                 folder = name
                 break
 
+    print(folder)
+
     keys = {}
     for root, dirs, files in os.walk(folder):
         for name in files:
             if name == "PKGBUILD":
-                if "cachy" not in name:
+                try:
                     # read file and extract package data
+                    print(os.path.join(root, name))
                     with open(os.path.join(root, name), "r") as f:
+                        # execute bash -x PKGBUILD to get the output
                         content = f.read()
-                    package_data = extract_package_data(content)
+                        content_parsed = subprocess.run(
+                            ["bash", "-x", os.path.join(root, name)],
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            text=True)
+                    #print(content_parsed.stderr)
+                    # get package data from content
+                    package_data = {}
+                    for line in content_parsed.stderr.splitlines():
+                        if line.startswith("+ pkgbase="):
+                            package_data["pkgbase"] = line.split("=")[1]
+                        if line.startswith("+ pkgname="):
+                            package_data["pkgname"] = line.split("=")[1]
+                        if line.startswith("+ pkgver="):
+                            package_data["pkgver"] = line.split("=")[1]
+                        if line.startswith("+ pkgrel="):
+                            package_data["pkgrel"] = line.split("=")[1]
+                        if line.startswith("+ url="):
+                            package_data["url"] = line.split("=")[1]
+                        if line.startswith("+ source="):
+                            package_data["source"] = line.split("=")[1]
+
                     # skip if pkgname ends with -git
                     if "-git" in package_data["pkgname"]:
                         continue
@@ -299,11 +334,17 @@ def cachy_update():
                         continue
                     if "nvidia" in package_data["pkgname"]:
                         continue
-                    package_data["content"] = content
-                    # convert content to string, using newline as separator
-                    package_data["content"] = "\n".join(package_data["content"])
 
+                    if not package_data["source"]:
+                        package_data["source"] = []
+                    else:
+                        package_data["source"] = parse_source_string(package_data["source"])
+                    #package_data["content"] = content
+                    # convert content to string, using newline as separator
+                    #package_data["content"] = "\n".join(package_data["content"])
                     keys[package_data["pkgname"]] = package_data
+                except:
+                    pass
 
     tree = create_archlinux_repo_list()
 
@@ -354,7 +395,7 @@ def cachy_update():
                 else:
                     console.print("DEBUG: Issue does not exist, creating new issue.", style="bold blue")
                 
-                # if version is different, open an issue
+                    # if version is different, open an issue
                     create_issue(owner, "CachyOS-PKGBUILDs", pkgname + ": version is different", "Version is different for " + pkgname + ".\n\nCachyOS: " + pkgver + "-" + pkgrel + "\nArchLinux: " + tree_version['pkgver'] + "-" + tree_version['pkgrel'] + "\n\nPlease update the package. \n\n Bip bop, I'm a bot.")
                     return
             if str(tree_version["pkgrel"]) != pkgrel:
@@ -413,7 +454,12 @@ def cachy_update():
         if value["pkgname"].endswith(")"):
             value["pkgname"] = value["pkgname"][:-1]
 
+        if "android" in value["pkgname"]:
+            continue
+
         console.print("Checking package", value["pkgname"], "version")
+
+
         # if 'url' in value:
         #    print('Checking at', value["url"])
         version = web_scrapper(value)
@@ -434,6 +480,9 @@ def cachy_update():
                 compare = compare_versions(version, value["pkgver"])
                 if compare == -1:
                     console.print("DEBUG: Our version is newer.", style="bold blue")
+                    continue
+                elif compare == 0:
+                    console.print("DEBUG: Versions are equal after adjusting.", style="bold blue")
                     continue
             except:
                 console.print("ERROR: Bad things happened.", style="bold red")

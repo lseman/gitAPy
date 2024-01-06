@@ -299,8 +299,56 @@ def create_archlinux_repo_list():
         for repo in repositores:
             download = "http://archlinux.c3sl.ufpr.br/" + repo + "/os/x86_64/" + repo + ".db.tar.gz"
             subprocess.run(["wget", download])
-            subprocess.run(["mkdir", repo])
+            subprocess.run(["mkdir", "-p", repo])
+            # force overwrite
             subprocess.run(["tar", "-xf", repo + ".db.tar.gz", "-C", repo])
+
+            subprocess.run(["tar", "-xf", repo + ".db.tar.gz", "-C", repo])
+    
+    for repo in repositores:
+        for root, dirs, files in os.walk(repo):
+            for name in files:
+                if 'desc' in name:
+                    #print(os.path.join(root, name))
+                    with open(os.path.join(root, 'desc')) as f:
+                        for line in f:
+                            if line.startswith("%NAME%"):
+                                # get the next line as the name
+                                name = next(f)
+                                packages[name.strip()] = {}
+                            if line.startswith("%VERSION%"):
+                                # get the next line as the version
+                                version = next(f)
+                                packages[name.strip()]["pkgver"] = version.split('-')[0].strip()
+                                packages[name.strip()]["pkgrel"] = version.split('-')[1].strip()
+
+                        # reset the file pointer
+                        f.seek(0)
+                        packages[name.strip()]["content"] = f.readlines()
+                        # convert list to string, using newline
+                        packages[name.strip()]["content"] = '\n'.join(packages[name.strip()]["content"])
+
+    return packages
+
+def create_cachy_tree_list():
+    """
+    Create a list of packages in the official Arch Linux repositories.
+
+    Returns:
+        list: A list of packages in the official Arch Linux repositories.
+    """
+    # create a list of packages
+    packages = {}
+    repositores = ["cachyos-core-v3"]
+
+    # check if os env GITAPY_CACHE is set
+    if os.environ.get("GITAPY_CACHE") == None:
+        for repo in repositores:
+            download = "https://mirror.cachyos.org/repo/x86_64_v3/" + repo + "/" + repo + ".db.tar.zst"
+            subprocess.run(["wget", download])
+            subprocess.run(["mkdir", repo])
+            # extract .tar.zst
+            subprocess.run(["tar", "-xf", repo + ".db.tar.zst", "-C", repo])
     
     for repo in repositores:
         for root, dirs, files in os.walk(repo):

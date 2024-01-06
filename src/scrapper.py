@@ -428,6 +428,8 @@ def web_scrapper(pkgdata):
     thr = 10
     visited = []
     for source in ([pkgdata["url"]] + pkgdata["source"]):
+        if source == '${source[@]}':
+            continue
         source = replace_placeholders(source, pkgdata)
         try:
             source = clean_url(source)
@@ -460,6 +462,11 @@ def web_scrapper(pkgdata):
             pass
         #print('manual try', source)
         if 'github.com' in source:
+            continue
+        
+        # dont follow link to files, like .zip, .tar.gz, etc
+        exts_to_ignore = ['.zip', '.tar.gz', '.tar.xz', '.deb', '.rpm', '.dmg', '.exe', '.AppImage', '.pkg', '.msi', '.AppImage', '.run', '.dmg', '.exe', '.msi', '.tgz', '.jar']
+        if any(ext in source for ext in exts_to_ignore):
             continue
         #try:
         try:

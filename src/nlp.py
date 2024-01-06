@@ -3,6 +3,8 @@ import re
 from bs4 import BeautifulSoup
 import requests
 import random
+import time
+from urllib.parse import urljoin
 # Load spaCy's English language model
 nlp = spacy.load("en_core_web_sm")
 
@@ -54,59 +56,51 @@ def randomize_header():
     return {'User-Agent': possible_user_agents[random.randint(0, len(possible_user_agents) - 1)]}
 
 def extract_version_with_ner_and_regex(url, pkgname):
-    """
-    Extracts version numbers from a webpage using NER and regex.
-
-    Args:
-        url (str): URL of the webpage.
-        pkgname (str): Name of the package.
-
-    Returns:
-        str or None: Extracted version number, if found.
-    """
-
-    # first filter the url to get the webpage
-    #print( "url: ", url)
+    session = requests.Session()
+    session.headers.update(randomize_header())
     
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, 'html.parser')
+    response = session.get(url)
+    if response.status_code != 200:
+        return None
+
+    soup = BeautifulSoup(response.content, 'html.parser')
     text = soup.get_text()
-    #print( "text: ", text)
-    
+
+    candidates = extract_versions(text, pkgname)
+
+    # Broadening search for download links
+    link_keywords = ["Download", "Latest version", "Update", "Release"]
+    link_regex = re.compile("|".join(link_keywords), re.IGNORECASE)
+
+    for a in soup.find_all('a', string=link_regex):
+        download_link = urljoin(url, a['href'])  # Handle relative URLs
+        download_response = session.get(download_link)
+        if download_response.status_code == 200 and 'text' in download_response.headers.get('Content-Type', ''):
+            download_text = BeautifulSoup(download_response.content, 'html.parser').get_text()
+            candidates.extend(extract_versions(download_text, pkgname))
+
+        time.sleep(1)  # Simple rate limiting
+
+    return list(set(candidates))  # Remove duplicates
+
+def extract_versions(text, pkgname):
     candidates = []
-    # Using spaCy NER to find potential version numbers
-    doc = nlp(text)
+    doc = nlp(text)  # Assuming you have an NLP model for entity recognition
     for ent in doc.ents:
-        if ent.label_ == "CARDINAL":  # 'CARDINAL' often represents numbers in spaCy
+        if ent.label_ == "CARDINAL":
             version = extract_version_from_text(ent.text, pkgname)
-            #print( "version: ", version)
             if version:
                 candidates.append(version)
-                
 
-    # Fallback to regex if NER doesn't find anything
     version = extract_version_from_text(text, pkgname)
     if version:
         candidates.append(version)
-    #print( "version: ", version)
     return candidates
 
 def extract_version_from_text(text, pkgname):
-    """
-    Extracts version number from text using regular expressions.
-
-    Args:
-        text (str): Text to search within.
-        pkgname (str): Name of the package.
-
-    Returns:
-        str or None: Extracted version number, if found.
-    """
     escaped_pkgname = re.escape(pkgname)
     version_regex = r"(?:Version\s*|{} )?v?\d+\.\d+(?:\.\d+)*(?:-\w+)?".format(escaped_pkgname)
     match = re.search(version_regex, text, re.IGNORECASE)
     if match:
-        return match.group().split(" ")[-1]  # Return only the version number
+        return match.group().split(" ")[-1]
     return None
-
-
