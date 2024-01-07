@@ -339,13 +339,15 @@ def cachy_update():
                         package_data["source"] = []
                     else:
                         package_data["source"] = parse_source_string(package_data["source"])
-                    #package_data["content"] = content
+                    package_data["content"] = content
                     # convert content to string, using newline as separator
-                    #package_data["content"] = "\n".join(package_data["content"])
+                    package_data["content"] = "\n".join(package_data["content"])
                     keys[package_data["pkgname"]] = package_data
                 except:
                     pass
-
+    
+    print(keys.keys())
+    #print(pato)
     tree = create_archlinux_repo_list()
 
     # retrieve PKGBUILD info
@@ -440,6 +442,9 @@ def cachy_update():
 
     for key, value in keys.items():
         print_pacman_separator_colored()
+        #print(key)
+        #if key != "ripgrep":
+        #    continue
 
         # check if pkgbase is empty
         if "pkgbase" not in value:
@@ -491,7 +496,7 @@ def cachy_update():
             console.print("WARNING: Version is different!", style="bold red")
             if check_issue(value['pkgname'], issues):
                 console.print("DEBUG: Issue already exists, not creating another issue.", style="bold blue")
-                return
+                continue
             else:
                 console.print("DEBUG: Issue does not exist, creating new issue.", style="bold blue")
             
