@@ -83,24 +83,46 @@ def extract_version_with_ner_and_regex(url, pkgname):
 
     return list(set(candidates))  # Remove duplicates
 
+
 def extract_versions(text, pkgname):
     candidates = []
-    doc = nlp(text)  # Assuming you have an NLP model for entity recognition
+    # Process text with spaCy, trying to get entities and version numbers with number of pkgname
+    doc = nlp(text) 
+
     for ent in doc.ents:
         if ent.label_ == "CARDINAL":
             version = extract_version_from_text(ent.text, pkgname)
-            if version:
+            if version and is_version_within_threshold(version, text, pkgname, 10):
+
                 candidates.append(version)
 
-    version = extract_version_from_text(text, pkgname)
-    if version:
-        candidates.append(version)
     return candidates
+
+def is_version_within_threshold(version, text, pkgname, threshold):
+    """
+    Check if a version-like number is within a certain character distance from the package name.
+    """
+    # Find all occurrences of the package name
+    for match in re.finditer(re.escape(pkgname), text, re.IGNORECASE):
+        pkgname_end = match.end()
+
+        # Search for version-like patterns after the package name
+        version_pattern = rf"v?\d+\.\d+(?:\.\d+)*(?:-\w+)?"
+        version_match = re.search(version_pattern, text[pkgname_end:], re.IGNORECASE)
+
+        if version_match:
+            version_start = pkgname_end + version_match.start()
+            distance = version_start - pkgname_end
+
+            if distance <= threshold and version_match.group() == version:
+                return True
+    return False
 
 def extract_version_from_text(text, pkgname):
     escaped_pkgname = re.escape(pkgname)
     version_regex = r"(?:Version\s*|{} )?v?\d+\.\d+(?:\.\d+)*(?:-\w+)?".format(escaped_pkgname)
     match = re.search(version_regex, text, re.IGNORECASE)
     if match:
+        print(match.group())
         return match.group().split(" ")[-1]
     return None
