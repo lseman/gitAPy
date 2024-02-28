@@ -266,8 +266,10 @@ def check_repology(pkgname):
     url = "https://repology.org/api/v1/projects/" + pkgname
     response = requests.get(url)
     data = response.json()
-
-    version = get_nix_unstable(data[pkgname])
+    try:
+        version = get_nix_unstable(data[pkgname])
+    except:
+        version = None
     return version
 
 def cachy_update():
