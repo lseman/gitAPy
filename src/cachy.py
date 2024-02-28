@@ -432,6 +432,7 @@ def cachy_update():
                 value["pkgname"] = value["pkgname"][1:]
             if value["pkgname"].endswith(")"):
                 value["pkgname"] = value["pkgname"][:-1]
+            value["pkgname"] = value["pkgname"].replace("'", "")
 
         if "android" in value["pkgname"]:
             continue
