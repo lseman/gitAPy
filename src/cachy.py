@@ -368,6 +368,9 @@ def cachy_update():
     # retrieve PKGBUILD info
     def check_versions(key, value):
 
+        arch_ver = 0
+        aur_ver = 0
+
         # print separator line like a pacman eating dots or rasputin
         # print_pacman_separator_colored()
         # little treatment for pkgname without pkbase
@@ -390,76 +393,28 @@ def cachy_update():
             tree_version = tree[key]
             console.print("ArchLinux", tree_version["pkgver"], tree_version["pkgrel"])
 
-            # check if version is different
-            if str(tree_version["pkgver"]) != pkgver:
-                try:
-                    compare = compare_versions(tree_version["pkgver"], pkgver)
-                    if compare == -1:
-                        console.print("DEBUG: Our version is newer.", style="bold blue")
-                        return
-                except:
-                    console.print("ERROR: Bad things happened.", style="bold red")
-                    return
+            arch_ver = tree_version["pkgver"]
 
-                # get diff from content
-                #diff = get_diff(value["content"], tree_version["content"])
-                #console.print(diff)
-                console.print("WARNING: Version is different", style="bold red")
+        console.print("DEBUG: Checking version against AUR", style="white")
+        aur_version = get_package_info(key)
+        if aur_version != "NotFound":
+            versioning = aur_version["Version"].split("-")
+            aur_pkgver = versioning[0]
+            aur_pkgrel = versioning[1]
 
-                if check_issue(pkgname, issues):
-                    console.print("DEBUG: Issue already exists, not creating another issue.", style="bold blue")
-                    return
-                else:
-                    console.print("DEBUG: Issue does not exist, creating new issue.", style="bold blue")
-                
-                    # if version is different, open an issue
-                    create_issue(owner, "CachyOS-PKGBUILDs", pkgname + ": version is different", "Version is different for " + pkgname + ".\n\nCachyOS: " + pkgver + "-" + pkgrel + "\nArchLinux: " + tree_version['pkgver'] + "-" + tree_version['pkgrel'] + "\n\nPlease update the package. \n\n Bip bop, I'm a bot.")
-                    return
-            if str(tree_version["pkgrel"]) != pkgrel:
-                console.print("WARNING: Release is different", style="bold red")
-        else:
-            console.print("DEBUG: Package not found in ArchLinux", style="white")
-            console.print("DEBUG: Checking version against AUR", style="white")
-            aur_version = get_package_info(key)
-            if aur_version != "NotFound":
-                versioning = aur_version["Version"].split("-")
-                aur_pkgver = versioning[0]
-                aur_pkgrel = versioning[1]
+            aur_pkgver = aur_pkgver.split(":")[-1]
+            console.print("AUR", aur_pkgver, aur_pkgrel)
+            aur_ver = aur_pkgver
 
-                aur_pkgver = aur_pkgver.split(":")[-1]
-                console.print("AUR", aur_pkgver, aur_pkgrel)
+        return arch_ver, aur_ver
 
-                # check if version is different
-                if str(aur_pkgver) != pkgver:
-                    try:
-                        compare = compare_versions(aur_pkgver, pkgver)
-                        if compare == -1:
-                            console.print("DEBUG: Our version is newer.", style="bold blue")
-                            return
-                    except:
-                        console.print("ERROR: Bad things happened.", style="bold red")
-                        return
-    
-                    console.print("WARNING: Version is different", style="bold red")
-
-                    if check_issue(pkgname, issues):
-                        console.print("DEBUG: Issue already exists, not creating another issue.", style="bold blue")
-                        return
-                    else:
-                        console.print("DEBUG: Issue does not exist, creating new issue.", style="bold blue")
-
-                        create_issue(owner, "CachyOS-PKGBUILDs", pkgname + ": version is different", "Version is different for " + pkgname + ".\n\nCachyOS: " + pkgver + "-" + pkgrel + "\nAUR: " + aur_pkgver + "-" + aur_pkgrel + "\n\nPlease update the package. \n\n Bip bop, I'm a bot.")
-                        return
-                if str(aur_pkgrel) != pkgrel:
-                    console.print("WARNING: Release is different", style="bold red")
-            else:
-                console.print("DEBUG: Does this package even exist?", style="white")
 
     for key, value in keys.items():
         print_pacman_separator_colored()
         #print(key)
         #if key != "ripgrep":
         #    continue
+        versions = []
 
         # check if pkgbase is empty
         if "pkgbase" not in value:
@@ -482,10 +437,12 @@ def cachy_update():
 
         # if 'url' in value:
         #    print('Checking at', value["url"])
-        #version = web_scrapper(value)
-        version = check_repology(value["pkgname"])
+        version = web_scrapper(value)
+        #version = check_repology(value["pkgname"])
         console.print("CachyOS:", value["pkgver"])
         console.print("Upstream:", version)
+
+        main_ver = version
 
         # check  if version is not None
         if version is None:
@@ -493,10 +450,47 @@ def cachy_update():
             console.print(
                 "DEBUG: Quiting scrapper, checking ArchLinux repository.", style="white"
             )
-            check_versions(key, value)
+        arch_ver, aur_ver = check_versions(key, value)
 
+        # get the highest version from main_ver, arch_ver and aur_ver
+        versions = [main_ver, arch_ver, aur_ver]
+        # use compare_versions to get the highest version
+        if main_ver is not None:
+            if arch_ver != 0:
+                main_versus_arch = compare_versions(main_ver, arch_ver)
+                if main_versus_arch == 1:
+                    highest_version = main_ver
+                else:
+                    highest_version = arch_ver
+            else:
+                highest_version = main_ver
+
+            if aur_ver != 0:
+                high_versus_aur = compare_versions(highest_version, aur_ver)
+                if high_versus_aur == 1:
+                    highest_version = highest_version
+                else:
+                    highest_version = aur_ver
+
+        else:
+            if arch_ver != 0 and aur_ver == 0:
+                highest_version = arch_ver
+            elif arch_ver == 0 and aur_ver != 0:
+                highest_version = aur_ver
+            elif arch_ver != 0 and aur_ver != 0:
+                compare = compare_versions(arch_ver, aur_ver)
+                if compare == 1:
+                    highest_version = arch_ver
+                else:
+                    highest_version = aur_ver
+            else:
+                highest_version = None
+
+        if highest_version is None:
+            console.print("DEBUG: No version found.", style="white")
             continue
-        if value["pkgver"] != version:
+
+        if value["pkgver"] != highest_version:
             try:
                 compare = compare_versions(version, value["pkgver"])
                 if compare == -1:
