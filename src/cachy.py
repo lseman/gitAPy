@@ -394,6 +394,9 @@ def cachy_update():
             console.print("ArchLinux", tree_version["pkgver"], tree_version["pkgrel"])
 
             arch_ver = tree_version["pkgver"]
+            # if second char in arch_ver is :, split it and get the second element
+            if arch_ver[1] == ":":
+                arch_ver = arch_ver.split(":")[1]
 
         console.print("DEBUG: Checking version against AUR", style="white")
         aur_version = get_package_info(key)
@@ -447,9 +450,7 @@ def cachy_update():
         # check  if version is not None
         if version is None:
             console.print("DEBUG: Upstream version not found.", style="white")
-            console.print(
-                "DEBUG: Quiting scrapper, checking ArchLinux repository.", style="white"
-            )
+
         arch_ver, aur_ver = check_versions(key, value)
 
         # get the highest version from main_ver, arch_ver and aur_ver
