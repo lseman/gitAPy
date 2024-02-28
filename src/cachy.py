@@ -423,19 +423,18 @@ def cachy_update():
         if "pkgbase" not in value:
             value["pkgname"] = value["pkgname"]
         else:
-            value["pkgname"] = value["pkgbase"]
-
-        # little treatment for pkgname without pkbase
-        value["pkgname"] = value["pkgname"].split(" ")[0]
-        if value["pkgname"].startswith("("):
-            value["pkgname"] = value["pkgname"][1:]
-        if value["pkgname"].endswith(")"):
-            value["pkgname"] = value["pkgname"][:-1]
+            # little treatment for pkgname without pkbase
+            value["pkgname"] = value["pkgname"].split(" ")[0]
+            if value["pkgname"].startswith("("):
+                value["pkgname"] = value["pkgname"][1:]
+            if value["pkgname"].endswith(")"):
+                value["pkgname"] = value["pkgname"][:-1]
 
         if "android" in value["pkgname"]:
             continue
 
         console.print("Checking package", value["pkgname"], "version")
+        cachy_version = value["pkgver"]
 
 
         # if 'url' in value:
@@ -495,7 +494,7 @@ def cachy_update():
 
         if value["pkgver"] != highest_version:
             try:
-                compare = compare_versions(version, value["pkgver"])
+                compare = compare_versions(highest_version, value["pkgver"])
                 if compare == -1:
                     console.print("DEBUG: Our version is newer.", style="bold blue")
                     continue
