@@ -198,8 +198,8 @@ def print_pacman_separator_colored():
 
     # Elements with colors
     pacman = yellow + "C" + reset
-    dots = white + "." * 50 + reset
-    ghost = blue + "[venepogodin]" + reset
+    dots = white + "." * 20 + reset
+    ghost = blue + "[ptr talk much when day is long]" + reset
 
     separator_line = pacman + dots + ghost
     print(separator_line)
@@ -256,6 +256,19 @@ def parse_source_string(source_string):
     parsed_list = shlex.split(trimmed)
 
     return parsed_list
+
+def get_nix_unstable(lista):
+    nix = [i for i in lista if i['repo'] == 'nix_unstable']
+    return nix[0]['version']
+
+# check repology api
+def check_repology(pkgname):
+    url = "https://repology.org/api/v1/projects/" + pkgname
+    response = requests.get(url)
+    data = response.json()
+
+    version = get_nix_unstable(data[pkgname])
+    return version
 
 def cachy_update():
     """
@@ -467,7 +480,8 @@ def cachy_update():
 
         # if 'url' in value:
         #    print('Checking at', value["url"])
-        version = web_scrapper(value)
+        #version = web_scrapper(value)
+        version = check_repology(value["pkgname"])
         console.print("CachyOS:", value["pkgver"])
         console.print("Upstream:", version)
 
