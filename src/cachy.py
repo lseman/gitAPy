@@ -399,7 +399,10 @@ def cachy_update():
                 arch_ver = arch_ver.split(":")[1]
 
         console.print("DEBUG: Checking version against AUR", style="white")
-        aur_version = get_package_info(key)
+        try:
+            aur_version = get_package_info(key)
+        except:
+            aur_version = "NotFound"
         if aur_version != "NotFound":
             versioning = aur_version["Version"].split("-")
             aur_pkgver = versioning[0]
