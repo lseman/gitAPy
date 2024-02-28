@@ -436,7 +436,7 @@ def cachy_update():
         if "android" in value["pkgname"]:
             continue
 
-        console.print("Checking package", value["pkgname"], "version")
+        console.print("Checking package", value["pkgname"], "version against", value["pkgver"])
         cachy_version = value["pkgver"]
 
 
