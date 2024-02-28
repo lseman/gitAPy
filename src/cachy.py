@@ -491,6 +491,8 @@ def cachy_update():
             console.print("DEBUG: No version found.", style="white")
             continue
 
+        console.print("DEBUG: Highest version found:", highest_version, style="white")
+
         if value["pkgver"] != highest_version:
             try:
                 compare = compare_versions(version, value["pkgver"])
