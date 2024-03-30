@@ -542,7 +542,8 @@ def cachy_update():
                     else:
                         new_content += key + "=" + val + "\n"
                 # get the sha
-                #sha = data["sha"]
+                # create the sha
+                sha = data["sha"]
                 # create a new branch
                 branch = value['pkgname']
                 
