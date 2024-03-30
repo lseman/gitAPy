@@ -510,10 +510,11 @@ def cachy_update():
                 continue
 
             console.print("WARNING: Version is different!", style="bold red")
-            if check_issue(value['pkgname'], issues):
-                console.print("DEBUG: Issue already exists, not creating another issue.", style="bold blue")
-                continue
-            else:
+            #if check_issue(value['pkgname'], issues):
+            #    console.print("DEBUG: Issue already exists, not creating another issue.", style="bold blue")
+            #    continue
+            #else:
+            if True:
                 console.print("DEBUG: Issue does not exist, creating new issue.", style="bold blue")
             
                 # if version is different, open an issue
