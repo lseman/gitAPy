@@ -534,13 +534,13 @@ def cachy_update():
                 package_data["pkgver"] = highest_version
                 # create new content
                 new_content = ""
-                for key, value in package_data.items():
+                for key, val in package_data.items():
                     if key == "source":
                         new_content += key + "=('"
-                        for item in value:
+                        for item in val:
                             new_content += item + "'\n"
                     else:
-                        new_content += key + "=" + value + "\n"
+                        new_content += key + "=" + val + "\n"
                 # get the sha
                 #sha = data["sha"]
                 # create a new branch
