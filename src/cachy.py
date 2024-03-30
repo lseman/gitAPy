@@ -517,4 +517,73 @@ def cachy_update():
                 console.print("DEBUG: Issue does not exist, creating new issue.", style="bold blue")
             
                 # if version is different, open an issue
-                create_issue(owner, "CachyOS-PKGBUILDs", value['pkgname'] + ": version is different", "Version is different for " + value['pkgname'] + ".\n\nCachyOS: " + value['pkgver'] + "-" + value['pkgrel'] + "\nUpstream: " + highest_version + "\n\nPlease update the package. \n\n Bip bop, I'm a bot.")
+                create_issue(owner, "CachyOS-PKGBUILDs", value['pkgname'] + ": version is different", "Version is different for " + value['pkgname'] + ".\n\nCachyOS: " + value['pkgver'] + "-" + value['pkgrel'] + "\nUpstream: " + version + "\n\nPlease update the package. \n\n Bip bop, I'm a bot.")
+
+                # create a PR
+                # we will create a new PR from a new branch, regarding the pkgname
+                # we will use the same branch name as the pkgname
+                # for that we will modify the PKGBUILD file with the new version
+                # we will create a new branch, commit the changes and push the new branch and start PR
+
+                # get the content of the PKGBUILD file
+                data = get_file_content(owner, "CachyOS-PKGBUILDs", file=value['pkgname'] + "/PKGBUILD")
+                content = base64.b64decode(data["content"]).decode("utf-8")
+                # extract package data
+                package_data = extract_package_data(content)
+                # update the version
+                package_data["pkgver"] = highest_version
+                # create new content
+                new_content = ""
+                for key, value in package_data.items():
+                    if key == "source":
+                        new_content += key + "=('"
+                        for item in value:
+                            new_content += item + "'\n"
+                    else:
+                        new_content += key + "=" + value + "\n"
+                # get the sha
+                sha = data["sha"]
+                # create a new branch
+                branch = value['pkgname']
+                
+                # create branch via API direct here, without calling function
+                url = "https://api.github.com/repos/" + owner + "/CachyOS-PKGBUILDs/git/refs"
+                data = {
+                    "ref": "refs/heads/" + branch,
+                    "sha": sha
+                }
+                response = requests.post(url, headers={"Authorization": "token " + os.environ["TOKEN"]}, json=data)
+                # get the response
+                response = response.json()
+                # get the commit sha
+                commit_sha = response["object"]["sha"]
+                # update the content
+                data = {
+                    "message": "Update " + value['pkgname'] + " to " + highest_version,
+                    "content": base64.b64encode(new_content.encode()).decode(),
+                    "sha": sha,
+                    "branch": branch
+                }
+                # update the file
+                url = "https://api.github.com/repos/" + owner + "/CachyOS-PKGBUILDs/contents/" + value['pkgname'] + "/PKGBUILD"
+                response = requests.put(url, headers={"Authorization": "token " + os.environ["TOKEN"]}, json=data)
+                # get the response
+                response = response.json()
+                # create PR
+                title = "Update " + value['pkgname'] + " to " + highest_version
+                head = branch
+                base = "master"
+                body = "Update " + value['pkgname'] + " to " + highest_version + ".\n\nThis PR was created by CachyOS bot."
+                
+                # create pr without calling function
+                url = "https://api.github.com/repos/" + owner + "/CachyOS-PKGBUILDs/pulls"
+                data = {
+                    "title": title,
+                    "head": head,
+                    "base": base,
+                    "body": body
+                }
+                response = requests.post(url, headers={"Authorization": "token " + os.environ["TOKEN"]}, json=data)
+                # get the response
+                response = response.json()
+                # print(response)
