@@ -158,6 +158,8 @@ def get_file_content(owner, repo, file):
     data["content"] = response["content"]
     data["encoding"] = response["encoding"]
 
+    data["sha"] = response["sha"]
+
     return data
 
 # seaarch for file in repo

@@ -523,9 +523,16 @@ def cachy_update():
                 # for that we will modify the PKGBUILD file with the new version
                 # we will create a new branch, commit the changes and push the new branch and start PR
                 # get the content of the PKGBUILD file
-                pkg_name = value["pkgname"]
+                # since we downloaded all the files, we will find the file in the subdirectories that contain the PKGBUILD file and the name of the package
 
-                data = get_file_content(owner, "CachyOS-PKGBUILDs", file=pkg_name + "/PKGBUILD")  # Assuming pkg_name is defined
+                for root, dirs, files in os.walk("."):
+                    for name in files:
+                        if name == "PKGBUILD":
+                            if value["pkgname"] in root:
+                                pkg_path = root.split("/")[-1]
+                                break
+
+                data = get_file_content(owner, "CachyOS-PKGBUILDs", file=pkg_path + "/PKGBUILD")  # Assuming pkg_name is defined
                 content = base64.b64decode(data["content"]).decode("utf-8")
                 # extract package data
                 package_data = extract_package_data(content)
