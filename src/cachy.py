@@ -523,6 +523,8 @@ def cachy_update():
                 # for that we will modify the PKGBUILD file with the new version
                 # we will create a new branch, commit the changes and push the new branch and start PR
                 # get the content of the PKGBUILD file
+                pkg_name = value["pkgname"]
+
                 data = get_file_content(owner, "CachyOS-PKGBUILDs", file=pkg_name + "/PKGBUILD")  # Assuming pkg_name is defined
                 content = base64.b64decode(data["content"]).decode("utf-8")
                 # extract package data
@@ -552,7 +554,8 @@ def cachy_update():
                 response = requests.post(url, headers={"Authorization": "token " + os.environ["TOKEN"]}, json=data)
                 response = response.json()
 
-                pkg_name = value["pkgname"]
+                # update the file, for that find in the tree the file with the same name as pkg_name
+
                 # Now, directly update the file in the new branch with the new content
                 url = "https://api.github.com/repos/" + owner + "/CachyOS-PKGBUILDs/contents/" + pkg_name + "/PKGBUILD"  # Use the corrected variable name
                 data = {
