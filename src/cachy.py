@@ -509,11 +509,12 @@ def cachy_update():
                 continue
 
             console.print("WARNING: Version is different!", style="bold red")
-            #if check_issue(value['pkgname'], issues):
-            #    console.print("DEBUG: Issue already exists, not creating another issue.", style="bold blue")
-            #    continue
-            #else:
-            if True:
+            if check_issue(value['pkgname'], issues):
+                console.print("DEBUG: Issue already exists, not creating another issue.", style="bold blue")
+                continue
+            else:
+                create_issue(owner, "CachyOS-PKGBUILDs", value['pkgname'] + ": version is different", "Version is different for " + value['pkgname'] + ".\n\nCachyOS: " + value['pkgver'] + "-" + value['pkgrel'] + "\nUpstream: " + highest_version + "\n\nPlease update the package. \n\n Bip bop, I'm a bot.")
+            #if True:
                 console.print("DEBUG: Issue does not exist, creating new issue.", style="bold blue")
             
                 # create a PR
@@ -556,7 +557,6 @@ def cachy_update():
                 print(response)
                 # get the sha of the master branch
                 sha = response["object"]["sha"]
-                print(sha)
 
                 # create branch via API direct here, without calling function
                 url = "https://api.github.com/repos/" + owner + "/CachyOS-PKGBUILDs/git/refs"
