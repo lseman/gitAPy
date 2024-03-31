@@ -514,7 +514,6 @@ def cachy_update():
                 continue
             else:
                 create_issue(owner, "CachyOS-PKGBUILDs", value['pkgname'] + ": version is different", "Version is different for " + value['pkgname'] + ".\n\nCachyOS: " + value['pkgver'] + "-" + value['pkgrel'] + "\nUpstream: " + highest_version + "\n\nPlease update the package. \n\n Bip bop, I'm a bot.")
-            #if True:
                 console.print("DEBUG: Issue does not exist, creating new issue.", style="bold blue")
             
                 # create a PR
