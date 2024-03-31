@@ -552,6 +552,7 @@ def cachy_update():
                 response = requests.post(url, headers={"Authorization": "token " + os.environ["TOKEN"]}, json=data)
                 response = response.json()
 
+                pkg_name = value["pkgname"]
                 # Now, directly update the file in the new branch with the new content
                 url = "https://api.github.com/repos/" + owner + "/CachyOS-PKGBUILDs/contents/" + pkg_name + "/PKGBUILD"  # Use the corrected variable name
                 data = {
