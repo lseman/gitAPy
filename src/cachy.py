@@ -529,9 +529,10 @@ def cachy_update():
                     for name in files:
                         if name == "PKGBUILD":
                             if value["pkgname"] in root:
-                                pkg_path = root
-                                # remove ./CachyOS- from the beginning of the str
-                                pkg_path = pkg_path[11:]
+                                pkg_path = root.split("/")
+                                # get everything after the first element
+                                pkg_path = "/".join(pkg_path[1:])
+                                # add PKGBUILD to the path
                                 pkg_path = pkg_path + "/PKGBUILD"
                                 break
                 
