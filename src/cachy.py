@@ -5,6 +5,7 @@ import sys
 import getopt
 import subprocess
 import os
+import re
 from datetime import datetime, timedelta
 
 from src.commits import *
@@ -536,24 +537,26 @@ def cachy_update():
                 
                 print(pkg_path)
                 data = get_file_content(owner, "CachyOS-PKGBUILDs", file=pkg_path)
+                # get the sha of the file
+                file_sha = data["sha"]
+                print(file_sha)
+                # get the content of the file
                 content = base64.b64decode(data["content"]).decode("utf-8")
                 # extract package data
                 package_data = extract_package_data(content)
                 # update the version
                 package_data["pkgver"] = highest_version
                 # create new content
-                new_content = ""
-                for key, item_value in package_data.items():  # Changed variable name to item_value
-                    if key == "source":
-                        new_content += key + "=('"
-                        for item in item_value:
-                            new_content += item + "'\n"
-                    else:
-                        new_content += key + "=" + item_value + "\n"
-                # get the sha
-                sha = data["sha"]
+                new_content = re.sub(r"\s*pkgver.*=.*", f"\npkgver={highest_version}", content)
                 # create a new branch
                 branch = value["pkgname"]  # Assuming pkg_name is defined
+                refs_url = "https://api.github.com/repos/" + owner + "/CachyOS-PKGBUILDs/git/refs/heads/master"
+                response = requests.get(refs_url, headers={"Authorization": "token " + os.environ["TOKEN"]})
+                response = response.json()
+                print(response)
+                # get the sha of the master branch
+                sha = response["object"]["sha"]
+                print(sha)
 
                 # create branch via API direct here, without calling function
                 url = "https://api.github.com/repos/" + owner + "/CachyOS-PKGBUILDs/git/refs"
@@ -572,7 +575,7 @@ def cachy_update():
                 data = {
                     "message": f"Update {pkg_name} to {highest_version}",
                     "content": base64.b64encode(new_content.encode()).decode(),
-                    "sha": sha,  # The sha of the file to be updated
+                    "sha": file_sha,  # The sha of the file to be updated
                     "branch": branch
                 }
                 response = requests.put(url, headers={"Authorization": "token " + os.environ["TOKEN"]}, json=data)
