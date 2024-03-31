@@ -306,8 +306,6 @@ def cachy_update():
                 folder = name
                 break
 
-    print(folder)
-
     keys = {}
     for root, dirs, files in os.walk(folder):
         for name in files:
@@ -555,7 +553,7 @@ def cachy_update():
                 # get the sha
                 sha = data["sha"]
                 # create a new branch
-                branch = pkg_name  # Assuming pkg_name is defined
+                branch = value["pkgname"]  # Assuming pkg_name is defined
 
                 # create branch via API direct here, without calling function
                 url = "https://api.github.com/repos/" + owner + "/CachyOS-PKGBUILDs/git/refs"
@@ -565,11 +563,12 @@ def cachy_update():
                 }
                 response = requests.post(url, headers={"Authorization": "token " + os.environ["TOKEN"]}, json=data)
                 response = response.json()
+                print(response)
 
                 # update the file, for that find in the tree the file with the same name as pkg_name
-
+                pkg_name = value["pkgname"]
                 # Now, directly update the file in the new branch with the new content
-                url = "https://api.github.com/repos/" + owner + "/CachyOS-PKGBUILDs/contents/" + pkg_name + "/PKGBUILD"  # Use the corrected variable name
+                url = "https://api.github.com/repos/" + owner + "/CachyOS-PKGBUILDs/contents/" + pkg_path  # Use the corrected variable name
                 data = {
                     "message": f"Update {pkg_name} to {highest_version}",
                     "content": base64.b64encode(new_content.encode()).decode(),
@@ -578,6 +577,7 @@ def cachy_update():
                 }
                 response = requests.put(url, headers={"Authorization": "token " + os.environ["TOKEN"]}, json=data)
                 response = response.json()
+                print(response)
 
                 # create PR
                 title = f"Update {pkg_name} to {highest_version}"
@@ -594,3 +594,4 @@ def cachy_update():
                 }
                 response = requests.post(url, headers={"Authorization": "token " + os.environ["TOKEN"]}, json=data)
                 response = response.json()
+                print(response)
