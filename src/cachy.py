@@ -531,7 +531,7 @@ def cachy_update():
                             if value["pkgname"] in root:
                                 pkg_path = root.split("/")
                                 # get everything after the first element
-                                pkg_path = "/".join(pkg_path[1:])
+                                pkg_path = "/".join(pkg_path[2:])
                                 # add PKGBUILD to the path
                                 pkg_path = pkg_path + "/PKGBUILD"
                                 break
