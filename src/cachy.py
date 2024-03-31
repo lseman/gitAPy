@@ -531,8 +531,9 @@ def cachy_update():
                             if value["pkgname"] in root:
                                 pkg_path = root.split("/")[-1]
                                 break
-
-                data = get_file_content(owner, "CachyOS-PKGBUILDs", file=pkg_path + "/PKGBUILD")  # Assuming pkg_name is defined
+                
+                print(pkg_path)
+                data = get_file_content(owner, "CachyOS-PKGBUILDs", file=pkg_path + "/PKGBUILD")
                 content = base64.b64decode(data["content"]).decode("utf-8")
                 # extract package data
                 package_data = extract_package_data(content)
