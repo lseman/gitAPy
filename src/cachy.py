@@ -530,6 +530,9 @@ def cachy_update():
                         if name == "PKGBUILD":
                             if value["pkgname"] in root:
                                 pkg_path = root
+                                # remove ./CachyOS- from the beginning of the str
+                                pkg_path = pkg_path[11:]
+                                pkg_path = pkg_path + "/PKGBUILD"
                                 break
                 
                 print(pkg_path)
