@@ -1,5 +1,6 @@
-rich
+beautifulsoup4
+numpy==1.26.4
 pandas
 requests
-beautifulsoup4
+rich
 spacy
